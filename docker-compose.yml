@@ -1,0 +1,15 @@
+services:
+  hadoop:
+
+  # contain spark for job processing and SQL engine (spark thrift)
+  spark:
+
+  # hive + mysql for hive metastore
+  hive:
+
+  mysql:
+
+  # superset for query and create dashboard
+  superset:
+
+  # airflow + postgres + redis
