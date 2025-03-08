@@ -25,7 +25,11 @@
 </property>
 <property>
   <name>yarn.resourcemanager.hostname</name>
-  <value>127.0.0.1</value>
+  <value>resourcemanager</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.address</name>
+    <value>resourcemanager:8032</value>  <!-- Ensure this is the correct port -->
 </property>
 <property>
   <name>yarn.acl.enable</name>

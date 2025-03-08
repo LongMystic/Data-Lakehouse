@@ -21,11 +21,11 @@
   </property>
   <property>
     <name>dfs.namenode.name.dir</name>
-    <value>/home/long.vk@citigo.id/Downloads/longvk/hadoop-3.3.6/data/namenode</value>
+    <value>opt/data/namenode</value>
   </property>
   <property>
     <name>dfs.datanode.data.dir</name>
-    <value>/home/long.vk@citigo.id/Downloads/longvk/hadoop-3.3.6/data/datanode</value>
+    <value>opt/data/datanode</value>
   </property>
   <!-- HA -->
   <property>

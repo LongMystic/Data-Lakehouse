@@ -19,7 +19,7 @@
 <configuration>
 <property>
   <name>hadoop.tmp.dir</name>
-  <value>/home/long.vk@citigo.id/Downloads/longvk/hadoop-3.3.6/tmpdata</value>
+  <value>opt/tmpdata</value>
 </property>
 <property>
 		<name>hadoop.proxyuser.server.hosts</name>
