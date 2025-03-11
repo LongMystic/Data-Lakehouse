@@ -9,7 +9,7 @@
     <!-- hive.metastore.warehouse.dir is deprecated since Spark 2.0.0 -->
     <property>
         <name>hive.metastore.warehouse.dir</name>
-        <value>/hive_metastore</value>
+        <value>hdfs://namenode:8020/user/hive/warehouse</value>
     </property>
     <property>
         <name>spark.sql.warehouse.dir</name>
@@ -40,7 +40,7 @@
     <!-- HIVE metastore configurations -->
     <property> 
       <name>hive.metastore.uris</name> 
-      <value>thrift://metastore:9083</value> 
+      <value>thrift://hive-metastore:9083</value>
       <description>IP address (or fully-qualified domain name) and port of the metastore host</description> 
     </property> 
     <property> 
@@ -73,5 +73,25 @@
       <name>javax.jdo.option.ConnectionURL</name> 
       <value>jdbc:mysql://hive-metastore-mysql:3306/metastore?enabledTLSProtocols=TLSv1.2</value> 
       <description>the URL of the MySQL database</description> 
-    </property> 
+    </property>
+
+    <!-- Iceberg Integration -->
+    <property>
+        <name>iceberg.engine.hive.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hive.vectorized.execution.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hive.execution.engine</name>
+        <value>spark</value>
+    </property>
+
+    <property>
+       <name>hive.server2.authentication</name>
+       <value>NONE</value>
+    </property>
+
 </configuration>

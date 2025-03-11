@@ -17,11 +17,11 @@
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
-<property>
-  <name>hadoop.tmp.dir</name>
-  <value>opt/tmpdata</value>
-</property>
-<property>
+<!--<property>-->
+<!--  <name>hadoop.tmp.dir</name>-->
+<!--  <value>opt/tmpdata</value>-->
+<!--</property>-->
+	<property>
 		<name>hadoop.proxyuser.server.hosts</name>
 		<value>*</value>
 	</property>
@@ -29,19 +29,19 @@
 		<name>hadoop.proxyuser.server.groups</name>
 		<value>*</value>
 	</property>
-<property>
-  <name>fs.default.name</name>
- <value>hdfs://localhost:9000</value>
-</property>
+	<property>
+		<name>fs.defaultFS</name>
+		<value>hdfs://namenode:8020</value>
+	</property>
 
-<property>
+	<property>
 	  <name>hadoop.proxyuser.hduser.hosts</name>
 	  <value>*</value>
-       </property>
-       <property>
+	</property>
+	<property>
 	  <name>hadoop.proxyuser.hduser.groups</name>
 	  <value>*</value>
-       </property>
+	</property>
 
 
 </configuration>
