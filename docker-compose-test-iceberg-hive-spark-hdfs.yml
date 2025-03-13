@@ -247,6 +247,28 @@ services:
     networks:
       - lakehouse-network
 
+  # Superset
+  superset:
+    image: apache/superset
+#    build:
+#      ./services/superset/
+    container_name: superset
+    hostname: superset
+#    depends_on:
+#      - spark-thriftserver
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./services/superset/conf/superset_config.py:/app/pythonpath/superset_config.py
+    environment:
+      - SUPERSET_CONFIG_PATH=/app/pythonpath/superset_config.py
+    networks:
+      - lakehouse-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8088/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   
 networks:
   lakehouse-network:
