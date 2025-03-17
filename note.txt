@@ -8,9 +8,9 @@
         $ $HADOOP_HOME/bin/hadoop fs -chmod g+w   /tmp
         $ $HADOOP_HOME/bin/hadoop fs -chmod g+w   /user/hive/warehouse
 
- beeline -u "jdbc:hive2://spark-thriftserver:10000" -n spark_user
+beeline -u "jdbc:hive2://spark-thriftserver:10000" -n spark_user
 
-CREATE TABLE long_test (
+CREATE TABLE iceberg.default.long_test (
   id INT,
   name STRING
 )
