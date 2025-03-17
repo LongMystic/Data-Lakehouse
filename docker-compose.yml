@@ -212,7 +212,7 @@ services:
     depends_on:
       - spark-master
       - hive-metastore
-    command: [ "/opt/bitnami/spark/bin/spark-submit", "--class", "org.apache.spark.sql.hive.thriftserver.HiveThriftServer2", "--master", "spark://spark-master:7077", "--name", "Thrift JDBC/ODBC Server" ]
+    command: ["/opt/bitnami/spark/bin/spark-submit", "--class", "org.apache.spark.sql.hive.thriftserver.HiveThriftServer2", "--master", "spark://spark-master:7077", "--name", "Thrift JDBC/ODBC Server" ]
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "10000" ]
       interval: 30s

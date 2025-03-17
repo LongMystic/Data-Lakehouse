@@ -13,7 +13,7 @@
     </property>
     <property>
         <name>spark.sql.warehouse.dir</name>
-        <value>/hive_metastore</value>
+        <value>hdfs://namenode:8020/user/hive/warehouse</value>
     </property>
 
     <!-- Set HDFS location for Hive scratch directory -->
