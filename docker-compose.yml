@@ -165,8 +165,10 @@ services:
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+      - SPARK_DAEMON_JAVA_OPTS=-Dspark.ui.prometheus.enabled=true -Dspark.metrics.conf=/opt/bitnami/spark/conf/metrics.properties
     volumes:
       - ./services/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./services/spark/conf/metrics.properties:/opt/bitnami/spark/conf/metrics.properties
       - ./services/hive/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
       - ./services/hadoop/conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/opt/bitnami/spark/conf/hdfs-site.xml
@@ -175,10 +177,11 @@ services:
     ports:
       - "7077:7077" # spark master port
       - "8080:8080" # web UI
+      - "8090:8090"  # Prometheus metrics
     networks:
       - lakehouse-network
-    depends_on:
-      - hive-metastore
+#    depends_on:
+#      - hive-metastore
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
       interval: 30s
@@ -197,8 +200,10 @@ services:
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+      - SPARK_DAEMON_JAVA_OPTS=-Dspark.ui.prometheus.enabled=true -Dspark.metrics.conf=/opt/bitnami/spark/conf/metrics.properties
     volumes:
       - ./services/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./services/spark/conf/metrics.properties:/opt/bitnami/spark/conf/metrics.properties
       - ./services/hive/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
       - ./services/hadoop/conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/opt/bitnami/spark/conf/hdfs-site.xml
@@ -207,11 +212,12 @@ services:
     ports:
       - "10000:10000" # thrift server port
       - "4040:4040" # spark UI
+      - "8092:8092" # Prometheus metrics
     networks:
       - lakehouse-network
     depends_on:
       - spark-master
-      - hive-metastore
+#      - hive-metastore
     command: ["/opt/bitnami/spark/bin/spark-submit", "--class", "org.apache.spark.sql.hive.thriftserver.HiveThriftServer2", "--master", "spark://spark-master:7077", "--name", "Thrift JDBC/ODBC Server" ]
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "10000" ]
@@ -233,8 +239,13 @@ services:
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+      - SPARK_DAEMON_JAVA_OPTS=-Dspark.ui.prometheus.enabled=true -Dspark.metrics.conf=/opt/bitnami/spark/conf/metrics.properties
+    ports:
+      - "8091:8091"
+      - "8081:8081"
     volumes:
       - ./services/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./services/spark/conf/metrics.properties:/opt/bitnami/spark/conf/metrics.properties
       - ./services/hive/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
       - ./services/hadoop/conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/opt/bitnami/spark/conf/hdfs-site.xml
@@ -247,9 +258,9 @@ services:
 
   # Superset
   superset:
-    image: apache/superset
-#    build:
-#      ./services/superset/
+#    image: apache/superset
+    build:
+      ./services/superset/
     container_name: superset
     hostname: superset
 #    depends_on:
@@ -276,7 +287,8 @@ services:
     ports:
       - "3000:3000"
 #    volumes:
-#      - ./grafana/provisioning:/etc/grafana/provisioning
+#      - ./services/grafana/provisioning:/etc/grafana/provisioning
+#      - ./services/grafana/dashboards:/etc/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
@@ -284,6 +296,23 @@ services:
       - lakehouse-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3000/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./services/prometheus/conf/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"  # Prometheus UI
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - lakehouse-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9090" ]
       interval: 30s
       timeout: 10s
       retries: 3

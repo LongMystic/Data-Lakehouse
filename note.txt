@@ -16,6 +16,4 @@ CREATE TABLE iceberg.default.long_test (
 )
 using iceberg
 
-
-link:
-1. https://cwiki.apache.org/confluence/display/Hive/GettingStarted
+Apache Spark SQL	pip install pyhive	hive://hive@{hostname}:{port}/{database}
