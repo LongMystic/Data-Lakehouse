@@ -17,3 +17,7 @@ CREATE TABLE iceberg.default.long_test (
 using iceberg
 
 Apache Spark SQL	pip install pyhive	hive://hive@{hostname}:{port}/{database}
+
+ALTER DATABASE test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+use test;
+ALTER TABLE category CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

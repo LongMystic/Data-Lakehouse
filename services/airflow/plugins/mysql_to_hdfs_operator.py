@@ -13,10 +13,10 @@ class MySQLToHDFSOperator(BaseOperator):
     def __init__(
             self, task_id: str,
             mysql_conn_id,
-            spark_conn_id,
-            hdfs_conn_id,
-            hdfs_path,
-            schema,
+            spark_conn_id=None,
+            hdfs_conn_id=None,
+            hdfs_path=None,
+            schema=None,
             sql: str = None,
             params: dict = None,
     ):
@@ -30,22 +30,19 @@ class MySQLToHDFSOperator(BaseOperator):
         self.params = params
 
     def fetch_data(self, mysql_conn_id, schema, sql):
-        data = []
-        try:
-            logging.info(f"Using mysql connection id: {mysql_conn_id} with schema {schema}")
-            mysql_hook = MySqlHook(mysql_conn_id=mysql_conn_id, schema=schema)
-            mysql_conn = mysql_hook.get_conn()
-            logging.info(f"Connect to mysql successfully!")
+        logging.info(f"Using mysql connection id: {mysql_conn_id} with schema {schema}")
+        mysql_hook = MySqlHook(mysql_conn_id=mysql_conn_id, schema=schema)
+        mysql_conn = mysql_hook.get_conn()
+        logging.info(f"Connect to mysql successfully!")
 
-            cursor = mysql_conn.cursor()
-            logging.info(f"Executing query: {sql}")
-            cursor.execute(sql)
-            data = mysql_hook.get_records(sql)
-            logging.info(f"Fetching data successfully!")
-            cursor.close()
-            mysql_conn.close()
-        except Exception as e:
-            logging.error(e)
+        cursor = mysql_conn.cursor()
+        logging.info(f"Executing query: {sql}")
+        cursor.execute(sql)
+        data = mysql_hook.get_records(sql)
+        logging.info(f"Fetching data successfully!")
+        cursor.close()
+        mysql_conn.close()
+
 
         return data
 
@@ -63,9 +60,9 @@ class MySQLToHDFSOperator(BaseOperator):
         column = []
         table = pyarrow.table(data, column)
 
-        pq.write_table(table, "./data.parquet")
-        subprocess.run(f"hdfs dfs -put ./data.parquet hdfs://namenode:8020:/{self.hdfs_path}")
-        subprocess.run("rm -f ./data.parquet")
+        pq.write_table(table, "/tmp/data.parquet")
+        # subprocess.run(f"hdfs dfs -put ./data.parquet hdfs://namenode:8020:/{self.hdfs_path}")
+        # subprocess.run("rm -f /tmp/data.parquet")
 
 
 class MySQLToHDFSOperatorPlugin(AirflowPlugin):
