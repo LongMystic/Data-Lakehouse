@@ -1,5 +1,5 @@
 # Define base image
-FROM apache/superset:2.1.3
+FROM apache/superset:latest
 
 # Switching to root to install the required packages
 USER root

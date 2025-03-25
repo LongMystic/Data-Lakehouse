@@ -2,7 +2,7 @@
     <!-- Set HDFS metastore URI -->
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://namenode:9000</value>
+        <value>hdfs://namenode:8020</value>
     </property>
 
     <!-- Configurations for HIVE metastore -->
