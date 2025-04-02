@@ -40,27 +40,31 @@ class MySQLToHDFSOperator(BaseOperator):
         cursor = mysql_conn.cursor()
         logging.info(f"Executing query: {sql}")
         cursor.execute(sql)
-        data = mysql_hook.get_records(sql)
+        data = cursor.fetchall()  # Fetch all rows
+        column_names = [desc[0] for desc in cursor.description]  # Get column names from the cursor
         logging.info(f"Fetching data successfully!")
         cursor.close()
         mysql_conn.close()
 
-
-        return data
+        return data, column_names  # Return both data and column names
 
     def execute(self, context: Context) -> Any:
         data = []
+        column_names = []
+        
         try:
-            data = self.fetch_data(
+            data, column_names = self.fetch_data(
                 mysql_conn_id=self.mysql_conn_id,
                 schema=self.schema,
                 sql=self.sql
             )
+            data = list(zip(*data))  # Transpose the data to match column names
+            logging.info(f"data: {data}")
+            logging.info(f"columns_names: {column_names}")
         except Exception as e:
             logging.error(e)
 
-        column = []
-        table = pyarrow.table(data, column)
+        table = pyarrow.table(data, names = column_names)
 
         pq.write_table(table, "/tmp/data.parquet")
         # subprocess.run(f"hdfs dfs -put ./data.parquet hdfs://namenode:8020:/{self.hdfs_path}")

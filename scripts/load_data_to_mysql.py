@@ -1,5 +1,6 @@
 import pymysql
 import pandas as pd
+import os
 
 # Database connection details
 DB_HOST = "localhost"  # Change if MySQL is running in a container
@@ -8,15 +9,15 @@ DB_USER = "root"
 DB_PASSWORD = "root"
 DB_NAME = "test"
 TABLE_NAME = "category"
-CSV_FILE_PATH = "./../data/category_sample.csv"  # Path to your CSV file
-
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_FILE_PATH = os.path.join(SCRIPT_DIR, "../data/category_sample.csv")
 # Connect to MySQL
 connection = pymysql.connect(host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASSWORD)
 cursor = connection.cursor()
 
 row_id = 0
 # Read CSV file
-df = pd.read_csv(CSV_FILE_PATH)
+df = pd.read_csv(CSV_FILE_PATH, encoding="utf-8", sep=",")
 
 # Replace NaN with None for MySQL
 df = df.where(pd.notna(df), None)
@@ -43,9 +44,9 @@ create_table_query = f"""
 CREATE TABLE IF NOT EXISTS test.{TABLE_NAME} (
     id INT AUTO_INCREMENT PRIMARY KEY,
     category_id INT,
-    category_name VARCHAR(255),
+    category_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     level INT,
-    parent_category VARCHAR(255),
+    parent_category VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     parent_id INT,
     industry_id INT,
     is_selected INT
