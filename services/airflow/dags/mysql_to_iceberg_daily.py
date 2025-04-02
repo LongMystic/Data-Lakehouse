@@ -1,3 +1,5 @@
+import logging
+
 import pendulum
 from airflow.models import DAG
 
@@ -28,24 +30,25 @@ with DAG(
     tags=["daily", "longvk"]
 
 ) as dag:
+    logging.info(str(variable))
     task_load_to_raw = load_raw(
         task_group_id="task_load_to_raw",
-        **variable
+        **{}
     )
 
     task_load_to_staging = load_staging(
         task_group_id="task_load_to_staging",
-        **variable
+        **{}
     )
 
     task_load_to_warehouse = load_warehouse(
         task_group_id="task_load_to_warehouse",
-        **variable
+        **{}
     )
 
     task_clean_raw = clean_raw(
         task_group_id="task_clean_raw",
-        **variable
+        **{}
     )
 
     (

@@ -11,16 +11,18 @@ import subprocess
 
 class MySQLToHDFSOperator(BaseOperator):
     def __init__(
-            self, task_id: str,
-            mysql_conn_id,
+            self,
+            mysql_conn_id="mysql_conn_id",
             spark_conn_id=None,
             hdfs_conn_id=None,
             hdfs_path=None,
             schema=None,
             sql: str = None,
             params: dict = None,
+            *args,
+            **kwargs
     ):
-        super().__init__(task_id)
+        super(MySQLToHDFSOperator, self).__init__(*args, **kwargs)
         self.mysql_conn_id = mysql_conn_id
         self.hdfs_conn_id = hdfs_conn_id
         self.spark_conn_id = spark_conn_id
