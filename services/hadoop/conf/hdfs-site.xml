@@ -19,6 +19,11 @@
     <name>dfs.webhdfs.enabled</name>
     <value>true</value>
   </property>
+  <property>
+    <name>dfs.namenode.acls.enabled</name>
+    <value>true</value>
+  </property>
+
 <!--  <property>-->
 <!--    <name>dfs.namenode.name.dir</name>-->
 <!--    <value>opt/data/namenode</value>-->
