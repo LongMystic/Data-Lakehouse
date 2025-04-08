@@ -24,6 +24,18 @@
   <value>org.apache.hadoop.mapred.ShuffleHandler</value>
 </property>
 <property>
+  <name>yarn.resourcemanager.scheduler.class</name>
+  <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+</property>
+<property>
+  <name>yarn.scheduler.capacity.root.queues</name>
+  <value>default</value>
+</property>
+<property>
+  <name>yarn.scheduler.capacity.root.default.capacity</name>
+  <value>100</value>
+</property>
+<property>
   <name>yarn.resourcemanager.hostname</name>
   <value>resourcemanager</value>
 </property>
@@ -38,5 +50,37 @@
 <property>
   <name>yarn.nodemanager.env-whitelist</name>   
   <value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PERPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_MAPRED_HOME</value>
+</property>
+<property>
+  <name>yarn.nodemanager.local-dirs</name>
+  <value>/hadoop/yarn/local</value>
+</property>
+<property>
+  <name>yarn.nodemanager.log-dirs</name>
+  <value>/hadoop/yarn/logs</value>
+</property>
+<!-- <property>
+  <name>yarn.resourcemanager.webapp.address</name>
+  <value>localhost:8088</value>
+</property>
+<property>
+  <name>yarn.resourcemanager.webapp.proxy.address</name>
+  <value>localhost:8088</value>
+</property> -->
+<property>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>4096</value>
+</property>
+<property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>256</value>
+</property>
+<property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>4096</value>
+</property>
+<property>
+    <name>yarn.nodemanager.resource.cpu-vcores</name>
+    <value>4</value>
 </property>
 </configuration>

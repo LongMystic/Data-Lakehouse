@@ -5,6 +5,7 @@ services:
     container_name: namenode
     environment:
       - CLUSTER_NAME=datn_2025
+      - HADOOP_CONF_DIR=/etc/hadoop
     ports:
       - "9870:9870"
       - "8020:8020"
@@ -13,7 +14,8 @@ services:
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       # - ./services/hadoop/conf/mapred-site.xml:/etc/hadoop/mapred-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
-      - namenode_data:/hadoop/dfs/name
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
+      # - namenode_data:/hadoop/dfs/name
     networks:
       - datn_2025_network
   
@@ -27,7 +29,8 @@ services:
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       # - ./services/hadoop/conf/mapred-site.xml:/etc/hadoop/mapred-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
-      - datanode_data:/hadoop/dfs/data
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
+      # - datanode_data:/hadoop/dfs/data
     networks:
       - datn_2025_network
   
@@ -40,7 +43,8 @@ services:
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       # - ./services/hadoop/conf/mapred-site.xml:/etc/hadoop/mapred-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
-      - datanode_data:/hadoop/dfs/data
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
+      # - datanode_data:/hadoop/dfs/data
     networks:
       - datn_2025_network
   
@@ -49,12 +53,14 @@ services:
     image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
     container_name: resourcemanager
     hostname: resourcemanager
-    # environment:
+    environment:
+      - HADOOP_CONF_DIR=/etc/hadoop
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       # - ./services/hadoop/conf/mapred-site.xml:/etc/hadoop/mapred-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
     ports:
       - "8088:8088"
       - "8032:8032"
@@ -64,24 +70,28 @@ services:
   nodemanager1:
     image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
     container_name: nodemanager1
-    # environment:
+    environment:
+      - HADOOP_CONF_DIR=/etc/hadoop
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       # - ./services/hadoop/conf/mapred-site.xml:/etc/hadoop/mapred-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
     networks:
       - datn_2025_network
 
   nodemanager2:
     image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
     container_name: nodemanager2
-    # environment:
+    environment:
+      - HADOOP_CONF_DIR=/etc/hadoop
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       # - ./services/hadoop/conf/mapred-site.xml:/etc/hadoop/mapred-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
     networks:
       - datn_2025_network
 
@@ -103,6 +113,7 @@ services:
       - ./services/hive/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./services/hadoop/conf/core-site.xml:/opt/spark/conf/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/opt/spark/conf/hdfs-site.xml
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
       - ./services/spark/jars/mysql-connector-java-8.0.21.jar:/opt/spark/jars/mysql-connector-java-8.0.21.jar
       - ./services/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar:/opt/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar
     ports:
@@ -141,6 +152,7 @@ services:
       - ./services/hive/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./services/hadoop/conf/core-site.xml:/opt/hadoop/etc/hadoop/conf/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/conf/hdfs-site.xml
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
       - ./services/hadoop/conf/yarn-site.xml:/opt/hadoop/etc/hadoop/conf/yarn-site.xml
       - ./services/spark/jars/mysql-connector-java-8.0.21.jar:/opt/spark/jars/mysql-connector-java-8.0.21.jar
       - ./services/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar:/opt/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar
@@ -154,6 +166,33 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  spark-client:
+    # image: apache/spark:3.3.3-python3
+    image: spark-custom:latest
+    container_name: spark-client
+    hostname: spark-client
+    command: tail -f /dev/null  # <-- Keeps it running
+    tty: true
+    stdin_open: true
+    environment:
+      - SPARK_MASTER=yarn
+      - SPARK_YARN_MODE=true
+      - SPARK_YARN_JAR=hdfs://namenode:8020/spark/jars
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - YARN_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./services/spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./services/spark/conf/metrics.properties:/opt/spark/conf/metrics.properties
+      - ./services/hive/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
+      - ./services/hadoop/conf/core-site.xml:/opt/hadoop/etc/hadoop/conf/core-site.xml
+      - ./services/hadoop/conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/conf/hdfs-site.xml
+      - ./services/hadoop/conf/yarn-site.xml:/opt/hadoop/etc/hadoop/conf/yarn-site.xml
+      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
+      - ./services/spark/jars/mysql-connector-java-8.0.21.jar:/opt/spark/jars/mysql-connector-java-8.0.21.jar
+      - ./services/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar:/opt/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar
+    networks:
+      - datn_2025_network
   
   # hive-metastore
   hive-metastore:
@@ -169,7 +208,7 @@ services:
       - ./services/hive/conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./services/hive/jars/mysql-connector-java-8.0.21.jar:/opt/hive/lib/mysql-connector-java-8.0.21.jar
     entrypoint: ["/bin/bash", "-c", "
-      if ! mysql -h hive-metastore-mysql -u root -proot -e 'use metastore; SELECT * FROM CTLGS LIMIT 1;' &> /dev/null; then
+      if ! mysql -h hive-metastore-mysql -u root -proot -e 'use hive_metastore; SELECT * FROM CTLGS LIMIT 1;' &> /dev/null; then
         echo 'Initializing schema...';
         /opt/hive/bin/schematool -dbType mysql -initSchema;
       else
@@ -268,8 +307,8 @@ networks:
   datn_2025_network:
     driver: bridge
   
-volumes:
-  namenode_data:
-    driver: local
-  datanode_data:
-    driver: local
+# volumes:
+#   namenode_data:
+#     driver: local
+#   datanode_data:
+#     driver: local

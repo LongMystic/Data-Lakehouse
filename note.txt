@@ -31,3 +31,8 @@ hdfs dfs -mkdir /spark-events
 hdfs dfs -chmod 777 /spark-events
 hdfs dfs -mkdir /spark-logs
 hdfs dfs -chmod 777 /spark-logs
+
+hdfs dfs -mkdir       /tmp
+hdfs dfs -mkdir -p /user/hive/warehouse
+hdfs dfs -chmod g+w   /tmp
+hdfs dfs -chmod g+w /user/hive/warehouse

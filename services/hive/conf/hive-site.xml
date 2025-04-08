@@ -71,7 +71,7 @@
     </property> 
     <property> 
       <name>javax.jdo.option.ConnectionURL</name> 
-      <value>jdbc:mysql://mysql:3306/metastore?enabledTLSProtocols=TLSv1.2</value> 
+      <value>jdbc:mysql://mysql:3306/hive_metastore?enabledTLSProtocols=TLSv1.2</value> 
       <description>The JDBC URL for the MySQL Hive Metastore database.</description> 
     </property>
 <!-- createDatabaseIfNotExist=true&amp; -->
