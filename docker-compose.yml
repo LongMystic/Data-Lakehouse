@@ -107,6 +107,8 @@ services:
     container_name: nodemanager1
     environment:
       - HADOOP_CONF_DIR=/etc/hadoop
+    ports:
+      - "8043:8042"
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
@@ -121,6 +123,8 @@ services:
     container_name: nodemanager2
     environment:
       - HADOOP_CONF_DIR=/etc/hadoop
+    ports:
+      - "8044:8042"
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
