@@ -1,6 +1,3 @@
-- connect hive to spark thrift:
-    !connect jdbc:hive2://spark-thriftserver:10000
-
 - at start hadoop:
     run some cmd:
         $ $HADOOP_HOME/bin/hadoop fs -mkdir       /tmp
@@ -23,7 +20,11 @@ ALTER DATABASE test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 use test;
 ALTER TABLE category CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+=== START HADOOP CLUSTER ===
 docker compose up namenode datanode1 datanode2 resourcemanager nodemanager1 nodemanager2 -d
+
+=== START AIRFLOW CLUSTER ===
+docker compose up postgres redis airflow-webserver airflow-scheduler airflow-worker airflow-triggerer airflow-init -d
 
 docker exec -it namenode sh
 hdfs dfs -setfacl -m user:spark_user:rwx /

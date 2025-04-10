@@ -2,7 +2,7 @@ import logging
 
 from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
-from plugins.mysql_to_hdfs_operator import MySQLToHDFSOperator
+from mysql_to_hdfs_operator import MySQLToHDFSOperator
 from airflow.operators.empty import EmptyOperator
 # from plugins.iceberg_operator import IcebergOperator
 from utils.utils import get_variables

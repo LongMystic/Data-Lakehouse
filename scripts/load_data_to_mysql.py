@@ -4,7 +4,7 @@ import os
 
 # Database connection details
 DB_HOST = "localhost"  # Change if MySQL is running in a container
-DB_PORT = 3309
+DB_PORT = 3306
 DB_USER = "root"
 DB_PASSWORD = "root"
 DB_NAME = "test"
