@@ -1,5 +1,10 @@
+from airflow.plugins_manager import AirflowPlugin
 from utils.spark_connections import get_spark_thrift_conn
 from airflow.models import BaseOperator
+from datetime import datetime, timedelta
+
+import logging
+_logger = logging.getLogger(__name__)
 
 class IcebergOperator(BaseOperator):
     def __init__(
@@ -7,9 +12,7 @@ class IcebergOperator(BaseOperator):
             hive_server2_conn_id,
             sql="",
             iceberg_table_name=None,
-            iceberg_table_uri=None,
-            iceberg_table_props=None,
-            num_keep_retention_snaps=None,
+            num_keep_retention_snaps=5,
             iceberg_db="default",
             *args,
             **kwargs
@@ -18,8 +21,61 @@ class IcebergOperator(BaseOperator):
         self.hive_server2_conn_id = hive_server2_conn_id
         self.sql = sql
         self.iceberg_table_name = iceberg_table_name
-        self.iceberg_table_uri = iceberg_table_uri
-        self.iceberg_table_props = iceberg_table_props
         self.num_keep_retention_snaps = num_keep_retention_snaps
         self.iceberg_db = iceberg_db
 
+
+    def get_spark_conn(self):
+        conn = get_spark_thrift_conn(self.hive_server2_conn_id)
+        return conn
+
+    def call_expire_snapshots(self, cursor):
+        expire_snapshot_sql = f"""
+            CALL iceberg.system.expire_snapshots (
+                table => '{self.iceberg_db}.{self.iceberg_table_name}',
+                retain_last => {self.num_keep_retention_snaps}
+            )
+        """
+
+        _logger.info("\n Keeping %s latest snapshots\n", self.num_keep_retention_snaps)
+        cursor.execute(expire_snapshot_sql)
+
+    def call_remove_orphan_files(self, cursor):
+        remove_orphan_files_sql = f"""
+            CALL iceberg.system.remove_orphan_files (
+                table => '{self.iceberg_db}.{self.iceberg_table_name}'
+            )
+        """
+        _logger.info("\nRemoving orphan files\n")
+        cursor.execute(remove_orphan_files_sql)
+
+    def call_rewrite_manifests(self, cursor):
+        rewrite_manifests_sql = f"""
+            CALL iceberg.system.rewrite_manifests (
+                table => '{self.iceberg_db}.{self.iceberg_table_name}'
+            )
+        """
+        _logger.info("\nRewriting manifest files\n")
+        cursor.execute(rewrite_manifests_sql)
+
+    def execute(self, context):
+        conn = self.get_spark_conn()
+        cursor = conn.cursor()
+
+        if self.sql == "":
+            raise Exception("SQL content is empty, please modify your sql file!!!")
+        else:
+            cursor.execute(self.sql)
+
+        if self.iceberg_db is None:
+            _logger.warning("\niceberg_db param is None, clean iceberg table is skipped!!!\n")
+        else:
+            self.call_expire_snapshots(cursor)
+            self.call_remove_orphan_files(cursor)
+            self.call_rewrite_manifests(cursor)
+
+        cursor.close()
+        conn.close()
+
+class IcebergOperatorPlugin(AirflowPlugin):
+    name = "IcebergOperatorPlugin"
