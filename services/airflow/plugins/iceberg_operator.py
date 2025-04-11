@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 class IcebergOperator(BaseOperator):
     def __init__(
             self, task_id: str,
-            hive_server2_conn_id,
+            spark_conn_id,
             sql="",
             iceberg_table_name=None,
             num_keep_retention_snaps=5,
@@ -18,7 +18,7 @@ class IcebergOperator(BaseOperator):
             **kwargs
     ):
         super().__init__(task_id, *args, **kwargs)
-        self.hive_server2_conn_id = hive_server2_conn_id
+        self.spark_conn_id = spark_conn_id
         self.sql = sql
         self.iceberg_table_name = iceberg_table_name
         self.num_keep_retention_snaps = num_keep_retention_snaps
@@ -26,7 +26,7 @@ class IcebergOperator(BaseOperator):
 
 
     def get_spark_conn(self):
-        conn = get_spark_thrift_conn(self.hive_server2_conn_id)
+        conn = get_spark_thrift_conn(self.spark_conn_id)
         return conn
 
     def call_expire_snapshots(self, cursor):
@@ -78,4 +78,5 @@ class IcebergOperator(BaseOperator):
         conn.close()
 
 class IcebergOperatorPlugin(AirflowPlugin):
-    name = "IcebergOperatorPlugin"
+    name = "iceberg_operator_plugin"
+    operators = [IcebergOperator]
