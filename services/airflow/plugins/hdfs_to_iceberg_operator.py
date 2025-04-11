@@ -33,3 +33,19 @@ class HDFSToIcebergOperator(BaseOperator):
             USING parquet
             LOCATION '/raw/{self.iceberg_table_name}_tmp/'
         """
+
+        _logger.info("\nCreating tmp table\n")
+        cursor.execute(create_tmp_table_sql)
+
+    def insert_data_into_staging_table(self, cursor):
+        insert_data_sql = f"""
+            INSERT INTO {self.iceberg_db}.{self.iceberg_table_name}
+            SELECT *
+            FROM default.{self.iceberg_table_name}_tmp
+        """
+
+        _logger.info("\nInserting data into staging table\n")
+        cursor.execute(insert_data_sql)
+
+    def create_staging_table(self, cursor):
+        create_table_
