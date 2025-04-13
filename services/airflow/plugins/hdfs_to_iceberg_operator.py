@@ -1,22 +1,24 @@
 from airflow.plugins_manager import AirflowPlugin
 from utils.spark_connections import get_spark_thrift_conn
 from airflow.models import BaseOperator
-from utils import generate_create_table_sql
+from utils.utils import generate_create_table_sql
 
 import logging
 
 _logger = logging.getLogger(__name__)
 
 class HDFSToIcebergOperator(BaseOperator):
-    def __init__(self, task_id: str,
-                 spark_conn_id=None,
-                 iceberg_table_name=None,
-                 num_keep_retention_snaps=5,
-                 iceberg_db="default",
-                 *args,
-                 **kwargs
+    def __init__(
+            self,
+            task_id: str = "",
+            spark_conn_id: str=None,
+            iceberg_table_name:str =None,
+            num_keep_retention_snaps=5,
+            iceberg_db="default",
+            *args,
+            **kwargs
     ):
-        super().__init__(task_id, *args, **kwargs)
+        super(HDFSToIcebergOperator, self).__init__(task_id=task_id)
         self.spark_conn_id = spark_conn_id
         self.iceberg_table_name = iceberg_table_name
         self.num_keep_retention_snaps = num_keep_retention_snaps

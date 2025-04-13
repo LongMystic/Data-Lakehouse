@@ -86,6 +86,12 @@ class MySQLToHDFSOperator(BaseOperator):
         # Connect to HDFS
         hdfs = pa.fs.HadoopFileSystem('namenode', port=8020)
 
+        parent_dir = self.hdfs_path.rsplit("/", 1)[0]
+
+        # Check if directory exists, if not, create it
+        if not hdfs.get_file_info(parent_dir).type == pa.fs.FileType.Directory:
+            hdfs.create_dir(parent_dir)
+
         # Open HDFS output stream
         with hdfs.open_output_stream(self.hdfs_path) as out_stream:
             pq.write_table(table, out_stream)

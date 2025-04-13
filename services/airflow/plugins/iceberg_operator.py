@@ -8,8 +8,9 @@ _logger = logging.getLogger(__name__)
 
 class IcebergOperator(BaseOperator):
     def __init__(
-            self, task_id: str,
-            spark_conn_id,
+            self,
+            task_id: str = "",
+            spark_conn_id: str=None,
             sql="",
             iceberg_table_name=None,
             num_keep_retention_snaps=5,
@@ -17,7 +18,7 @@ class IcebergOperator(BaseOperator):
             *args,
             **kwargs
     ):
-        super().__init__(task_id, *args, **kwargs)
+        super(IcebergOperator, self).__init__(task_id=task_id)
         self.spark_conn_id = spark_conn_id
         self.sql = sql
         self.iceberg_table_name = iceberg_table_name

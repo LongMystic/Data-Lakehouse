@@ -1,6 +1,7 @@
 x-airflow-common:
   &airflow-common
-  image: apache/airflow:2.6.1
+  image: airflow-custom:v1.1
+  # image: apache/airflow:2.6.1
   # build: .
   environment:
     &airflow-common-env

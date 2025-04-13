@@ -15,5 +15,8 @@ ENV PATH $JAVA_HOME/bin:$PATH
 
 USER airflow
 
-# Install PySpark
-RUN pip install pyspark
+# Copy requirements.txt
+COPY requirements.txt /requirements.txt
+
+# Install Python packages
+RUN pip install --no-cache-dir -r /requirements.txt
