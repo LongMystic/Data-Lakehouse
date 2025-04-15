@@ -18,7 +18,7 @@ class IcebergOperator(BaseOperator):
             *args,
             **kwargs
     ):
-        super(IcebergOperator, self).__init__(task_id=task_id)
+        super().__init__(task_id=task_id)
         self.spark_conn_id = spark_conn_id
         self.sql = sql
         self.iceberg_table_name = iceberg_table_name

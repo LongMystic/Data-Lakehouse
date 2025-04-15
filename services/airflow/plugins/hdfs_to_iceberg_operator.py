@@ -15,14 +15,16 @@ class HDFSToIcebergOperator(BaseOperator):
             iceberg_table_name:str =None,
             num_keep_retention_snaps=5,
             iceberg_db="default",
+            table_properties=None,
             *args,
             **kwargs
     ):
-        super(HDFSToIcebergOperator, self).__init__(task_id=task_id)
+        super().__init__(task_id=task_id)
         self.spark_conn_id = spark_conn_id
         self.iceberg_table_name = iceberg_table_name
         self.num_keep_retention_snaps = num_keep_retention_snaps
         self.iceberg_db = iceberg_db
+        self.table_properties = table_properties
 
     def get_spark_conn(self):
         conn = get_spark_thrift_conn(self.spark_conn_id)
@@ -30,6 +32,7 @@ class HDFSToIcebergOperator(BaseOperator):
 
     def create_tmp_table(self, cursor):
         create_tmp_table_sql = f"""
+            DROP TABLE IF EXISTS default.{self.iceberg_table_name}_tmp;
             CREATE TABLE default.{self.iceberg_table_name}_tmp
             USING parquet
             LOCATION '/raw/{self.iceberg_table_name}_tmp/'
@@ -49,10 +52,15 @@ class HDFSToIcebergOperator(BaseOperator):
         cursor.execute(insert_data_sql)
 
     def create_staging_table(self, cursor):
+        drop_staging_table_sql = f"""
+            DROP TABLE IF EXISTS {self.iceberg_db}.{self.iceberg_table_name};
+        """
+        _logger.info("\nDropping staging table\n")
+        cursor.execute(drop_staging_table_sql)
         create_staging_table_sql = generate_create_table_sql(
             iceberg_db=self.iceberg_db,
             iceberg_table=self.iceberg_table_name,
-            iceberg_columns_properties="",
+            iceberg_columns_properties=self.table_properties,
             location=f"/raw/{self.iceberg_db}/{self.iceberg_table_name}/"
         )
 
@@ -61,7 +69,7 @@ class HDFSToIcebergOperator(BaseOperator):
 
     def drop_tmp_table(self, cursor):
         drop_tmp_table_sql = f"""
-            DROP TABLE default.{self.iceberg_table_name}_tmp
+            DROP TABLE IF EXISTS default.{self.iceberg_table_name}_tmp
         """
 
         _logger.info("\nDropping tmp table\n")

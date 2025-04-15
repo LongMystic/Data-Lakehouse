@@ -24,3 +24,18 @@ def generate_create_table_sql(iceberg_db, iceberg_table, iceberg_columns_propert
     )
     return sql
 
+
+def generate_table_properties_sql(table: Table) -> str:
+    table_columns = table.COLUMNS
+    table_properties = ""
+    for column in table_columns:
+        column_name = column['name']
+        column_type = column['type']
+        column_comment = column['comment']
+        if column_comment:
+            table_properties += f"{column_name} {column_type} COMMENT '{column_comment}',\n"
+        else:
+            table_properties += f"{column_name} {column_type},\n"
+    # remove the last comma and newline
+    table_properties = table_properties.rstrip(",\n")
+    return table_properties

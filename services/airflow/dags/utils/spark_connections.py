@@ -30,6 +30,9 @@ def get_spark_session(app_name="AirflowApp", master="yarn"):
         .config("spark.proxy.user", "spark_user")
         .config("spark.yarn.resourcemanager.hostname", "resourcemanager")
         .config("spark.jars", "/opt/airflow/jars/mysql-connector-java-8.0.21.jar")
+        .config("spark.executor.memory", "1g")
+        .config("spark.executor.cores", "1")
+        .config("spark.executor.instances", "2")
         # Optional: metrics for Prometheus if needed
         .config("spark.ui.prometheus.enabled", "true")
         .getOrCreate()
