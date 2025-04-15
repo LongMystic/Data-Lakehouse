@@ -32,7 +32,7 @@ def load_raw(task_group_id, **kwargs):
             schema="test",
             sql="SELECT * FROM test.category",
             mysql_conn_id=mysql_conn_id,
-            hdfs_path="/raw/test/category"
+            hdfs_path="/raw/category_tmp"
         )
         task_load_raw
 

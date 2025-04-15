@@ -14,7 +14,7 @@ def get_variables(
     return variables
 
 def generate_create_table_sql(iceberg_db, iceberg_table, iceberg_columns_properties, location):
-    with open("../sql/common/create_table_template.sql", 'r') as sql_file:
+    with open("/opt/airflow/dags/sql/common/create_table_template.sql", 'r') as sql_file:
         template = sql_file.read()
     sql = template.format(
         iceberg_db=iceberg_db,
