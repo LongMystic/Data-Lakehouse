@@ -30,16 +30,21 @@ class HDFSToIcebergOperator(BaseOperator):
         conn = get_spark_thrift_conn(self.spark_conn_id)
         return conn
 
-    def create_tmp_table(self, cursor):
-        create_tmp_table_sql = f"""
-            DROP TABLE IF EXISTS default.{self.iceberg_table_name}_tmp;
-            CREATE TABLE default.{self.iceberg_table_name}_tmp
-            USING parquet
-            LOCATION '/raw/{self.iceberg_table_name}_tmp/'
-        """
-
-        _logger.info("\nCreating tmp table\n")
-        cursor.execute(create_tmp_table_sql)
+    # def create_tmp_table(self, cursor):
+    #     drop_tmp_table_sql = f"""
+    #         DROP TABLE IF EXISTS default.{self.iceberg_table_name}_tmp
+    #     """
+    #     _logger.info("\nDropping tmp table if exists\n")
+    #     cursor.execute(drop_tmp_table_sql)
+    #
+    #     create_tmp_table_sql = f"""
+    #         CREATE TABLE default.{self.iceberg_table_name}_tmp
+    #         USING parquet
+    #         LOCATION '/raw/{self.iceberg_table_name}_tmp/'
+    #     """
+    #
+    #     _logger.info("\nCreating tmp table\n")
+    #     cursor.execute(create_tmp_table_sql)
 
     def insert_data_into_staging_table(self, cursor):
         insert_data_sql = f"""
@@ -52,6 +57,13 @@ class HDFSToIcebergOperator(BaseOperator):
         cursor.execute(insert_data_sql)
 
     def create_staging_table(self, cursor):
+        create_database_query_sql = f"""
+            CREATE DATABASE IF NOT EXISTS {self.iceberg_db}
+        """
+        _logger.info("\nCreating database if not exists\n")
+        cursor.execute(create_database_query_sql)
+
+
         drop_staging_table_sql = f"""
             DROP TABLE IF EXISTS {self.iceberg_db}.{self.iceberg_table_name};
         """
@@ -86,7 +98,7 @@ class HDFSToIcebergOperator(BaseOperator):
         else:
             _logger.info(f"Using iceberg table name: {self.iceberg_table_name}")
             _logger.info(f"Using iceberg db: {self.iceberg_db}")    
-            self.create_tmp_table(cursor)
+            # self.create_tmp_table(cursor)
             self.create_staging_table(cursor)
             self.insert_data_into_staging_table(cursor)
             self.drop_tmp_table(cursor)

@@ -1,4 +1,4 @@
-from schema import Table
+from schema.Table import Table
 
 class Category(Table):
     """

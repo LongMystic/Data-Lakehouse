@@ -1,6 +1,9 @@
 from airflow.models import Variable
 from typing import Any, Dict
 
+from schema.Table import Table
+
+
 def get_variables(
         name,
         deserialize_json=True,
@@ -20,7 +23,7 @@ def generate_create_table_sql(iceberg_db, iceberg_table, iceberg_columns_propert
         iceberg_db=iceberg_db,
         iceberg_table=iceberg_table,
         iceberg_columns_properties=iceberg_columns_properties,
-        location=location
+        location=f"'hdfs://namenode:8020{location}'"
     )
     return sql
 
