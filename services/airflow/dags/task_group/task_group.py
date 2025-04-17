@@ -49,12 +49,6 @@ def load_staging(task_group_id, **kwargs):
                 table_properties=generate_table_properties_sql(tbl)
             )
         task_load_staging
-
-        # task = PythonOperator(
-        #         task_id="python",
-        #         python_callable=python_callable
-        #     )
-        # task
     return task_group
 
 
@@ -66,18 +60,10 @@ def load_warehouse(task_group_id, **kwargs):
             iceberg_table_name="category",
             num_keep_retention_snaps=5,
             iceberg_db="longvk_test",
-            spark_conn_id=spark_conn_id
+            spark_conn_id=spark_conn_id,
+            sql="""
+                
+            """
         )
         task_load_warehouse
-        return task_group
-
-
-def clean_raw(task_group_id, **kwargs):
-    with TaskGroup(task_group_id) as task_group:
-        # table_name = 
-        task_clean_raw = BashOperator(
-            task_id=f"clean_raw",
-            bash_command="hdfs dfs -rm -r /raw/test/category/"
-        )
-        task_clean_raw
         return task_group

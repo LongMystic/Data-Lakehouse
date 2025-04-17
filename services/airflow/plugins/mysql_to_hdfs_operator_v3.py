@@ -35,7 +35,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
     def execute(self, context: Context) -> Any:
 
         _logger.info(f"Using MySQL connection id: {self.mysql_conn_id} with schema {self.schema}")
-        _logger.info(f"Using Spark connection id: {self.mysql_conn_id}")
+        _logger.info(f"Using Spark connection id: {self.spark_conn_id}")
         _logger.info(f"Using HDFS path to write data: {self.hdfs_path}")
 
         conn = get_spark_thrift_conn(self.spark_conn_id)

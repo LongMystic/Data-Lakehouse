@@ -8,11 +8,14 @@ class Category(Table):
         super().__init__(table_name)
         self.iceberg_db = "sales_staging"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": "ID"},
             {"name": "category_id", "type": "INT", "comment": "Category ID"},
             {"name": "category_name", "type": "STRING", "comment": "Category Name"},
-            {"name": "description", "type": "STRING", "comment": "Description"},
-            {"name": "created_at", "type": "TIMESTAMP", "comment": "Created At"},
-            {"name": "updated_at", "type": "TIMESTAMP", "comment": "Updated At"}
+            {"name": "level", "type": "INT", "comment": "Category Name"},
+            {"name": "parent_category", "type": "STRING", "comment": "Category Name"},
+            {"name": "parent_id", "type": "INT", "comment": "Category Name"},
+            {"name": "industry_id", "type": "INT", "comment": "Category Name"},
+            {"name": "is_selected", "type": "INT", "comment": "Category Name"}
         ]
         self.SQL = "/sql/raw/extract_category.sql"
         
