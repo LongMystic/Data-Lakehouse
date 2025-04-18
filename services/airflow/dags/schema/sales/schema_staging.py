@@ -1,4 +1,4 @@
-from schema import Table
+from schema.Table import Table
 
 class Category(Table):
     """
@@ -6,6 +6,7 @@ class Category(Table):
     """
     def __init__(self, table_name: str):
         super().__init__(table_name)
+        self.table_name = table_name
         self.iceberg_db = "sales"
         self.COLUMNS = [
             {"name": "id", "type": "INT", "comment": "ID"},
@@ -17,7 +18,7 @@ class Category(Table):
             {"name": "industry_id", "type": "INT", "comment": "Category Name"},
             {"name": "is_selected", "type": "INT", "comment": "Category Name"}
         ]
-        self.SQL = "/sql/staging/transform_category.sql"
+        self.SQL = "sql/staging/transform_category.sql"
         
 
 category_dim = Category('category_dim')

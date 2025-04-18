@@ -6,6 +6,7 @@ class Category(Table):
     """
     def __init__(self, table_name: str):
         super().__init__(table_name)
+        self.table_name = table_name
         self.iceberg_db = "sales_staging"
         self.COLUMNS = [
             {"name": "id", "type": "INT", "comment": "ID"},

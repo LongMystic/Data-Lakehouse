@@ -11,7 +11,8 @@ from mysql_to_hdfs_operator_v3 import MySQLToHDFSOperatorV3
 from hdfs_to_iceberg_operator import HDFSToIcebergOperator
 from iceberg_operator import IcebergOperator
 
-from schema.sales.schema_raw import ALL_TABLES
+from schema.sales.schema_raw import ALL_TABLES as ALL_TABLES_RAW
+from schema.sales.schema_staging import ALL_TABLES as ALL_TABLES_STG
 
 from utils.utils import get_variables, generate_table_properties_sql
 DAG_NAME = "mysql_to_iceberg_daily"
@@ -39,31 +40,32 @@ def load_staging(task_group_id, **kwargs):
     with TaskGroup(task_group_id) as task_group:
         spark_conn_id = kwargs.get("spark_conn_id")
 
-        for tbl in ALL_TABLES:
+        for tbl in ALL_TABLES_RAW:
+            tbl_name = tbl.table_name
             task_load_staging = HDFSToIcebergOperator(
                 task_id=f"load_table_to_staging_layer",
-                iceberg_table_name="category",
+                iceberg_table_name=tbl_name,
                 num_keep_retention_snaps=5,
                 iceberg_db="longvk_test",
                 spark_conn_id=spark_conn_id,
                 table_properties=generate_table_properties_sql(tbl)
             )
-        task_load_staging
+            task_load_staging
     return task_group
 
 
 def load_warehouse(task_group_id, **kwargs):
     with TaskGroup(task_group_id) as task_group:
         spark_conn_id = kwargs.get("spark_conn_id")
-        task_load_warehouse = IcebergOperator(
-            task_id=f"load_table_to_business_layer",
-            iceberg_table_name="category",
-            num_keep_retention_snaps=5,
-            iceberg_db="longvk_test",
-            spark_conn_id=spark_conn_id,
-            sql="""
-                
-            """
-        )
-        task_load_warehouse
+        for tbl in ALL_TABLES_STG:
+            task_load_warehouse = IcebergOperator(
+                task_id=f"load_table_to_business_layer",
+                spark_conn_id=spark_conn_id,
+                sql_path=tbl.SQL,
+                iceberg_table_name=tbl.table_name,
+                num_keep_retention_snaps=5,
+                iceberg_db="longvk_test",
+                table_properties=generate_table_properties_sql(tbl)
+            )
+            task_load_warehouse
         return task_group
