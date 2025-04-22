@@ -429,11 +429,6 @@ services:
     container_name: airflow-webserver
     ports:
       - "8080:8080"
-    environment:
-      - AIRFLOW__METRICS__STATSD_ON=True
-      - AIRFLOW__METRICS__STATSD_HOST=statsd-exporter
-      - AIRFLOW__METRICS__STATSD_PORT=9125
-      - AIRFLOW__METRICS__STATSD_PREFIX=airflow
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8080/health" ]
       interval: 30s
@@ -451,11 +446,6 @@ services:
     <<: *airflow-common
     command: scheduler
     container_name: airflow-scheduler
-    environment:
-      - AIRFLOW__METRICS__STATSD_ON=True
-      - AIRFLOW__METRICS__STATSD_HOST=statsd-exporter
-      - AIRFLOW__METRICS__STATSD_PORT=9125
-      - AIRFLOW__METRICS__STATSD_PREFIX=airflow
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8974/health" ]
       interval: 30s
@@ -543,15 +533,13 @@ services:
   statsd-exporter:
     image: prom/statsd-exporter:v0.26.1
     container_name: statsd-exporter
+    hostname: statsd-exporter
     command: "--statsd.listen-udp=:8125 --web.listen-address=:9102"
     ports:
       - "9102:9102"
       - "8125:8125/udp"
     volumes:
       - ./services/statsd/mapping.yml:/tmp/mapping.yml
-    depends_on:
-      - airflow-webserver
-      - airflow-scheduler
     networks:
       - datn_2025_network
 
