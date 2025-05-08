@@ -555,8 +555,3 @@ networks:
   datn_2025_network:
     driver: bridge
   
-#volumes:
-#   datn_namenode:
-#     driver: local
-#   datn_datanode1:
-#     driver: local
