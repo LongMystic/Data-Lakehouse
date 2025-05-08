@@ -52,11 +52,19 @@ services:
     ports:
       - "9870:9870"
       - "8020:8020"
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        if [ ! -f "/opt/data/namenode/current/VERSION" ]; then
+          echo "Formatting NameNode..."
+          hdfs namenode -format -force
+        fi
+        hdfs namenode
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
-#      - ./services/hadoop/conf/capacity-scheduler.xml:/etc/hadoop/capacity-scheduler.xml
       - ./services/jmx/jmx_prometheus_javaagent-0.20.0.jar:/jmx/jmx_prometheus_javaagent-0.20.0.jar
       - ./services/jmx/namenode.yml:/jmx/namenode.yml
       - ./services/hadoop/data/namenode:/opt/data/namenode
@@ -547,8 +555,8 @@ networks:
   datn_2025_network:
     driver: bridge
   
-# volumes:
-#   namenode_data:
+#volumes:
+#   datn_namenode:
 #     driver: local
-#   datanode_data:
+#   datn_datanode1:
 #     driver: local
