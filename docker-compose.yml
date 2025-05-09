@@ -349,6 +349,8 @@ services:
       - MYSQL_PASSWORD=hive
     ports:
       - "3306:3306"
+    volumes:
+      - ./services/mysql/data:/var/lib/mysql
     networks:
       - datn_2025_network
     healthcheck:

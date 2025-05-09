@@ -181,3 +181,5 @@ cython_debug/
 # namenode datanode
 /services/hadoop/data
 /data
+
+.DS_Store
