@@ -16,6 +16,7 @@ class HDFSToIcebergOperator(BaseOperator):
             num_keep_retention_snaps=5,
             iceberg_db="default",
             table_properties=None,
+            layer="staging",
             *args,
             **kwargs
     ):
@@ -24,6 +25,7 @@ class HDFSToIcebergOperator(BaseOperator):
         self.iceberg_table_name = iceberg_table_name
         self.num_keep_retention_snaps = num_keep_retention_snaps
         self.iceberg_db = iceberg_db
+        self.layer = layer
         self.table_properties = table_properties
 
     def get_spark_conn(self):
@@ -73,7 +75,7 @@ class HDFSToIcebergOperator(BaseOperator):
             iceberg_db=self.iceberg_db,
             iceberg_table=self.iceberg_table_name,
             iceberg_columns_properties=self.table_properties,
-            location=f"/raw/{self.iceberg_db}/{self.iceberg_table_name}/"
+            location=f"/{self.layer}/{self.iceberg_db}/{self.iceberg_table_name}/"
         )
 
         _logger.info("\nCreating staging table\n")

@@ -7,7 +7,7 @@ class Category(Table):
     def __init__(self, table_name: str):
         super().__init__(table_name)
         self.table_name = table_name
-        self.iceberg_db = "sales"
+        self.iceberg_db = "sales_business"
         self.COLUMNS = [
             {"name": "id", "type": "INT", "comment": "ID"},
             {"name": "category_id", "type": "INT", "comment": "Category ID"},
@@ -28,8 +28,9 @@ class HolidaysEvents(Table):
     def __init__(self, table_name: str):
         super().__init__(table_name)
         self.table_name = table_name
-        self.iceberg_db = "sales"
+        self.iceberg_db = "sales_business"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "date", "type": "TIMESTAMP", "comment": ""},
             {"name": "type", "type": "STRING", "comment": ""},
             {"name": "locale", "type": "STRING", "comment": ""},
@@ -47,8 +48,9 @@ class Items(Table):
     def __init__(self, table_name: str):
         super().__init__(table_name)
         self.table_name = table_name
-        self.iceberg_db = "sales"
+        self.iceberg_db = "sales_business"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "item_nbr", "type": "INT", "comment": ""},
             {"name": "family", "type": "STRING", "comment": ""},
             {"name": "class", "type": "INT", "comment": ""},
@@ -64,8 +66,9 @@ class Oil(Table):
     def __init__(self, table_name: str):
         super().__init__(table_name)
         self.table_name = table_name
-        self.iceberg_db = "sales"
+        self.iceberg_db = "sales_business"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "date", "type": "TIMESTAMP", "comment": ""},
             {"name": "dcoilwtico", "type": "DOUBLE", "comment": ""}
         ]
@@ -79,8 +82,9 @@ class Stores(Table):
     def __init__(self, table_name: str):
         super().__init__(table_name)
         self.table_name = table_name
-        self.iceberg_db = "sales"
+        self.iceberg_db = "sales_business"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "store_nbr", "type": "INT", "comment": ""},
             {"name": "city", "type": "STRING", "comment": ""},
             {"name": "state", "type": "STRING", "comment": ""},
@@ -97,8 +101,9 @@ class Transactions(Table):
     def __init__(self, table_name: str):
         super().__init__(table_name)
         self.table_name = table_name
-        self.iceberg_db = "sales"
+        self.iceberg_db = "sales_business"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "store_nbr", "type": "INT", "comment": ""},
             {"name": "date", "type": "TIMESTAMP", "comment": ""},
             {"name": "transactions", "type": "INT", "comment": ""}
@@ -113,7 +118,7 @@ class Sales(Table):
     def __init__(self, table_name: str):
         super().__init__(table_name)
         self.table_name = table_name
-        self.iceberg_db = "sales"
+        self.iceberg_db = "sales_business"
         self.COLUMNS = [
             {"name": "id", "type": "BIGINT", "comment": ""},
             {"name": "date", "type": "TIMESTAMP", "comment": ""},
@@ -135,7 +140,7 @@ transactions_fact = Transactions('transactions_fact')
 sales_fact = Sales('sales_fact')
 
 ALL_TABLES = [
-    category_dim,
+    # category_dim,
     holidays_events_dim,
     items_dim,
     oil_fact,

@@ -28,6 +28,7 @@ docker compose up postgres redis airflow-webserver airflow-scheduler airflow-wor
 
 === START AIRFLOW LOCAL MODE ===
 docker compose up postgres airflow-webserver airflow-scheduler airflow-init statsd-exporter -d
+docker compose up airflow-webserver airflow-scheduler airflow-init -d
 
 docker exec -it namenode sh
 hdfs dfs -setfacl -m user:spark_user:rwx /

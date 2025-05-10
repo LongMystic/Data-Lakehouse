@@ -21,6 +21,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
             table=None,
             sql: str = None,
             jdbc_options: dict = None,
+            params: dict = {},
             *args,
             **kwargs
     ):
@@ -31,6 +32,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
         self.schema = schema
         self.table = table
         self.sql = sql
+        self.params = params
 
     def execute(self, context: Context) -> Any:
 
@@ -43,11 +45,19 @@ class MySQLToHDFSOperatorV3(BaseOperator):
 
         mysql_conn = BaseHook.get_connection(self.mysql_conn_id)
 
+        _logger.info(f"Using SQL PATH: {self.sql}")
+
         if self.sql is None or self.sql == "":
             _logger.info("Sql query is empty, use \"SELECT * FROM schema.table\" as default query")
             self.sql = f"{self.schema}.{self.table}"
         else:
+            self.sql = f"/opt/airflow/dags{self.sql}"
+            with open(self.sql, 'r') as f:
+                self.sql = f.read()
+                for param in self.params:
+                    self.sql = self.sql.replace(f"{{{param}}}", self.params[param])
             self.sql = f"({self.sql}) as filtered_data"
+            _logger.info(f"Using SQL file: {self.sql}")
 
         spark_query = f"""
             SET spark.sql.legacy.allowNonEmptyLocationInCTAS=true;

@@ -31,6 +31,7 @@ class HolidaysEvents(Table):
         self.table_name = table_name
         self.iceberg_db = "sales_staging"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "date", "type": "TIMESTAMP", "comment": ""},
             {"name": "type", "type": "STRING", "comment": ""},
             {"name": "locale", "type": "STRING", "comment": ""},
@@ -50,6 +51,7 @@ class Items(Table):
         self.table_name = table_name
         self.iceberg_db = "sales_staging"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "item_nbr", "type": "INT", "comment": ""},
             {"name": "family", "type": "STRING", "comment": ""},
             {"name": "class", "type": "INT", "comment": ""},
@@ -67,6 +69,7 @@ class Oil(Table):
         self.table_name = table_name
         self.iceberg_db = "sales_staging"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "date", "type": "TIMESTAMP", "comment": ""},
             {"name": "dcoilwtico", "type": "DOUBLE", "comment": ""}
         ]
@@ -82,6 +85,7 @@ class Stores(Table):
         self.table_name = table_name
         self.iceberg_db = "sales_staging"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "store_nbr", "type": "INT", "comment": ""},
             {"name": "city", "type": "STRING", "comment": ""},
             {"name": "state", "type": "STRING", "comment": ""},
@@ -100,6 +104,7 @@ class Transactions(Table):
         self.table_name = table_name
         self.iceberg_db = "sales_staging"
         self.COLUMNS = [
+            {"name": "id", "type": "INT", "comment": ""},
             {"name": "store_nbr", "type": "INT", "comment": ""},
             {"name": "date", "type": "TIMESTAMP", "comment": ""},
             {"name": "transactions", "type": "INT", "comment": ""}
@@ -134,7 +139,7 @@ stores = Stores('stores')
 transactions = Transactions('transactions')
 sales = Sales('sales')
 ALL_TABLES = [
-    category,
+    # category,
     holidays_events,
     items,
     oil,

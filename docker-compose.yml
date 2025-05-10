@@ -314,6 +314,7 @@ services:
     volumes:
       - ./services/hive/conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./services/hive/jars/mysql-connector-java-8.0.21.jar:/opt/hive/lib/mysql-connector-java-8.0.21.jar
+      - ./services/hive/jars/iceberg-hive-runtime-1.3.0.jar:/opt/hive/lib/iceberg-hive-runtime-1.3.0.jar
     entrypoint: ["/bin/bash", "-c", "
       if ! mysql -h hive-metastore-mysql -u root -proot -e 'use hive_metastore; SELECT * FROM CTLGS LIMIT 1;' &> /dev/null; then
         echo 'Initializing schema...';
@@ -361,7 +362,7 @@ services:
 
   # superset
   superset:
-    image: superset_custom:latest
+    image: superset_custom:v1.1
     container_name: superset
     hostname: superset
     # environment:
