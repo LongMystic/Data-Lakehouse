@@ -22,6 +22,10 @@ class MySQLToHDFSOperatorV3(BaseOperator):
             sql: str = None,
             jdbc_options: dict = None,
             params: dict = {},
+            partition_column: str = None,
+            num_partitions: int = 4,
+            lower_bound: int = None,
+            upper_bound: int = None,
             *args,
             **kwargs
     ):
@@ -33,6 +37,10 @@ class MySQLToHDFSOperatorV3(BaseOperator):
         self.table = table
         self.sql = sql
         self.params = params
+        self.partition_column = partition_column
+        self.num_partitions = num_partitions
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
 
     def execute(self, context: Context) -> Any:
 
@@ -59,15 +67,36 @@ class MySQLToHDFSOperatorV3(BaseOperator):
             self.sql = f"({self.sql}) as filtered_data"
             _logger.info(f"Using SQL file: {self.sql}")
 
+        # Build JDBC options for partitioning
+        jdbc_options = {
+            "url": f"jdbc:mysql://{mysql_conn.host}:{mysql_conn.port}/{self.schema}",
+            "dbtable": self.sql,
+            "user": mysql_conn.login,
+            "password": mysql_conn.password,
+        }
+
+        # Add partitioning options if partition_column is provided
+        if self.partition_column:
+            jdbc_options.update({
+                "partitionColumn": self.partition_column,
+                "numPartitions": str(self.num_partitions),
+            })
+            if self.lower_bound is not None and self.upper_bound is not None:
+                jdbc_options.update({
+                    "lowerBound": str(self.lower_bound),
+                    "upperBound": str(self.upper_bound),
+                })
+
+        # Convert jdbc_options to string format for Spark SQL
+        jdbc_options_str = ",\n".join([f"'{k}' '{v}'" for k, v in jdbc_options.items()])
+
         spark_query = f"""
             SET spark.sql.legacy.allowNonEmptyLocationInCTAS=true;
+            
             CREATE OR REPLACE TEMPORARY VIEW {self.table}_view
             USING org.apache.spark.sql.jdbc
             OPTIONS (
-              url "jdbc:mysql://{mysql_conn.host}:{mysql_conn.port}/{self.schema}",
-              dbtable "{self.sql}",
-              user '{mysql_conn.login}',
-              password '{mysql_conn.password}'
+              {jdbc_options_str}
             );
             
             DROP TABLE IF EXISTS {self.table}_tmp;
@@ -77,9 +106,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
             AS SELECT * FROM {self.table}_view;
             
             DROP VIEW IF EXISTS {self.table}_view
-           
         """
-        #  DROP TABLE IF EXISTS default.{self.table}_tmp
 
         for query in spark_query.split(';'):
             _logger.info("Executing query %s\n", query)

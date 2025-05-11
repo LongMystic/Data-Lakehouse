@@ -1,7 +1,7 @@
 import pymysql
 import pandas as pd
 import os
-
+import time
 # Database connection details
 DB_HOST = "localhost"  # Change if MySQL is running in a container
 DB_PORT = 3306
@@ -10,7 +10,7 @@ DB_PASSWORD = "root"
 DB_NAME = "test"
 TABLE_NAME = "category"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CSV_FILE_PATH = os.path.join(SCRIPT_DIR, "../data/")
+CSV_FILE_PATH = os.path.join(SCRIPT_DIR, "..", "data")
 
 
 def create_database(cursor, connection):
@@ -326,22 +326,97 @@ def load_sales(cursor, connection, csv_file_path, table_name):
     print(f"Table {table_name} successfully loaded into MySQL.")
 
 
+def normalize_path(path):
+    """Convert Windows path to forward slashes and normalize it"""
+    return os.path.normpath(path).replace('\\', '/')
+
+def load_all_sales(cursor, connection, csv_file_path, table_name):
+    """
+    Load a large CSV file into MySQL using LOAD DATA LOCAL INFILE
+    """
+    start_time = time.time()
+    
+    # Normalize the file path
+    normalized_path = normalize_path(csv_file_path)
+    
+    # Drop existing table
+    drop_table_query = f"""
+        DROP TABLE IF EXISTS test.{table_name};
+    """
+    cursor.execute(drop_table_query)
+    connection.commit()
+    print("Table deleted successfully!")
+
+    # Create table if it doesn't exist
+    create_table_query = f"""
+    CREATE TABLE IF NOT EXISTS test.{table_name} (
+        id INT PRIMARY KEY,
+        date DATE,
+        store_nbr INT,
+        item_nbr INT,
+        unit_sales DOUBLE,
+        onpromotion INT
+    );
+    """ 
+    cursor.execute(create_table_query)
+    connection.commit()
+    print(f"Table {table_name} created successfully!")
+
+    load_sql = f"""
+        LOAD DATA LOCAL INFILE '{normalized_path}'
+        INTO TABLE test.{table_name}
+        FIELDS TERMINATED BY ',' 
+        ENCLOSED BY '"'
+        LINES TERMINATED BY '\n'
+        IGNORE 1 ROWS
+        (id, date, store_nbr, item_nbr, unit_sales, onpromotion);
+    """
+
+    try:
+        print(f"Loading data from {normalized_path}...")
+        cursor.execute(load_sql)
+        connection.commit()
+        
+        # Get row count
+        cursor.execute(f"SELECT COUNT(*) FROM test.{table_name}")
+        row_count = cursor.fetchone()[0]
+        
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        print(f"Successfully loaded {row_count:,} rows into {table_name}")
+        print(f"Time taken: {duration:.2f} seconds")
+        print(f"Loading speed: {row_count/duration:.2f} rows/second")
+        
+    except Exception as e:
+        print(f"Error loading data: {str(e)}")
+        connection.rollback()
+        raise
+
 def main():
     # Connect to MySQL
-    connection = pymysql.connect(host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASSWORD)
+    connection = pymysql.connect(
+        host=DB_HOST, 
+        port=DB_PORT, 
+        user=DB_USER, 
+        password=DB_PASSWORD,
+        local_infile=True)
     cursor = connection.cursor()
     create_database(cursor, connection)
-    load_holidays_events(cursor, connection, CSV_FILE_PATH + "holidays_events.csv", "holidays_events")
-    load_items(cursor, connection, CSV_FILE_PATH + "items.csv", "items")
-    load_oil(cursor, connection, CSV_FILE_PATH + "oil.csv", "oil")
-    load_stores(cursor, connection, CSV_FILE_PATH + "stores.csv", "stores")
-    load_transactions(cursor, connection, CSV_FILE_PATH + "transactions.csv", "transactions")
-    load_sales(cursor, connection, CSV_FILE_PATH + "sales.csv", "sales")
-    
-    print("All data loaded successfully!")
-
-    cursor.close()
-    connection.close()
+    try:
+        # load_holidays_events(cursor, connection, CSV_FILE_PATH + "holidays_events.csv", "holidays_events")
+        # load_items(cursor, connection, CSV_FILE_PATH + "items.csv", "items")
+        # load_oil(cursor, connection, CSV_FILE_PATH + "oil.csv", "oil")
+        # load_stores(cursor, connection, CSV_FILE_PATH + "stores.csv", "stores")
+        # load_transactions(cursor, connection, CSV_FILE_PATH + "transactions.csv", "transactions")
+        # load_sales(cursor, connection, CSV_FILE_PATH + "sales.csv", "sales")
+        sales_file = os.path.join(CSV_FILE_PATH, "sales.csv")
+        load_all_sales(cursor, connection, sales_file, "sales")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
 
 if __name__ == "__main__":
     main()

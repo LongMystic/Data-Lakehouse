@@ -23,6 +23,11 @@ def load_raw(task_group_id, **kwargs):
         spark_conn_id = kwargs.get("spark_conn_id")
         mysql_conn_id = kwargs.get("mysql_conn_id")
         
+        partition_column = "id"
+        num_partitions = 4
+        lower_bound = 1
+        upper_bound = 10000
+
         for tbl in ALL_TABLES_RAW:
             tbl_name = tbl.table_name
             task_load_raw = MySQLToHDFSOperatorV3(
@@ -32,7 +37,11 @@ def load_raw(task_group_id, **kwargs):
                 hdfs_path=f"/raw/{tbl_name}_tmp",
                 schema="test",
                 table=tbl_name,
-                sql=tbl.SQL
+                sql=tbl.SQL,
+                partition_column=partition_column,
+                num_partitions=num_partitions,
+                lower_bound=lower_bound,
+                upper_bound=upper_bound
             )
             task_load_raw
 
