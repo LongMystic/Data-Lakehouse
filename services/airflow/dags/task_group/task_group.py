@@ -24,24 +24,26 @@ def load_raw(task_group_id, **kwargs):
         mysql_conn_id = kwargs.get("mysql_conn_id")
         
         partition_column = "id"
-        num_partitions = 4
-        lower_bound = 1
-        upper_bound = 10000
+        limit = 15000000
+        offset = 0
 
         for tbl in ALL_TABLES_RAW:
             tbl_name = tbl.table_name
+            if tbl_name == "sales":
+                offset = kwargs.get("offset", 0)
+            
+            offset = offset * limit
+            
             task_load_raw = MySQLToHDFSOperatorV3(
                 task_id = f"load_table_{tbl_name}_to_raw_layer",
                 mysql_conn_id=mysql_conn_id,
                 spark_conn_id=spark_conn_id,
                 hdfs_path=f"/raw/{tbl_name}_tmp",
                 schema="test",
+                params = { "limit": str(limit)},
                 table=tbl_name,
                 sql=tbl.SQL,
-                partition_column=partition_column,
-                num_partitions=num_partitions,
-                lower_bound=lower_bound,
-                upper_bound=upper_bound
+                partition_column=partition_column
             )
             task_load_raw
 

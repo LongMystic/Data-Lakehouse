@@ -10,7 +10,7 @@ DB_PASSWORD = "root"
 DB_NAME = "test"
 TABLE_NAME = "category"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CSV_FILE_PATH = os.path.join(SCRIPT_DIR, "..", "data")
+CSV_FILE_PATH = os.path.join(SCRIPT_DIR, "..", "data/")
 
 
 def create_database(cursor, connection):
@@ -404,14 +404,14 @@ def main():
     cursor = connection.cursor()
     create_database(cursor, connection)
     try:
-        # load_holidays_events(cursor, connection, CSV_FILE_PATH + "holidays_events.csv", "holidays_events")
-        # load_items(cursor, connection, CSV_FILE_PATH + "items.csv", "items")
-        # load_oil(cursor, connection, CSV_FILE_PATH + "oil.csv", "oil")
-        # load_stores(cursor, connection, CSV_FILE_PATH + "stores.csv", "stores")
-        # load_transactions(cursor, connection, CSV_FILE_PATH + "transactions.csv", "transactions")
+        load_holidays_events(cursor, connection, CSV_FILE_PATH + "holidays_events.csv", "holidays_events")
+        load_items(cursor, connection, CSV_FILE_PATH + "items.csv", "items")
+        load_oil(cursor, connection, CSV_FILE_PATH + "oil.csv", "oil")
+        load_stores(cursor, connection, CSV_FILE_PATH + "stores.csv", "stores")
+        load_transactions(cursor, connection, CSV_FILE_PATH + "transactions.csv", "transactions")
         # load_sales(cursor, connection, CSV_FILE_PATH + "sales.csv", "sales")
-        sales_file = os.path.join(CSV_FILE_PATH, "sales.csv")
-        load_all_sales(cursor, connection, sales_file, "sales")
+        # sales_file = os.path.join(CSV_FILE_PATH, "sales.csv")
+        # load_all_sales(cursor, connection, sales_file, "sales")
     except Exception as e:
         print(f"Error: {str(e)}")
     finally:

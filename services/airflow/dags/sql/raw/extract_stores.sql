@@ -6,3 +6,5 @@ SELECT
     type,
     cluster
 FROM stores
+LIMIT {limit}
+OFFSET {offset}

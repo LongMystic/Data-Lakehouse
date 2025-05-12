@@ -3,3 +3,5 @@ SELECT
     date,
     dcoilwtico
 FROM oil
+LIMIT {limit}
+OFFSET {offset}

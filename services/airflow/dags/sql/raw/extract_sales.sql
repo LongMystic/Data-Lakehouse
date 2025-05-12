@@ -5,4 +5,4 @@ SELECT
     item_nbr,
     unit_sales,
     onpromotion
-FROM sales
+FROM test.sales
