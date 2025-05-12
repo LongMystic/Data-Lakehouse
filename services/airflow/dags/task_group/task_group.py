@@ -43,7 +43,8 @@ def load_raw(task_group_id, **kwargs):
                 params = { "limit": str(limit)},
                 table=tbl_name,
                 sql=tbl.SQL,
-                partition_column=partition_column
+                partition_column=partition_column,
+                trigger_rule='all_success'
             )
             task_load_raw
 
@@ -61,7 +62,8 @@ def load_staging(task_group_id, **kwargs):
                 num_keep_retention_snaps=5,
                 iceberg_db="sales_staging",
                 spark_conn_id=spark_conn_id,
-                table_properties=generate_table_properties_sql(tbl)
+                table_properties=generate_table_properties_sql(tbl),
+                trigger_rule='all_success'
             )
             task_load_staging
     return task_group
@@ -80,7 +82,8 @@ def load_warehouse(task_group_id, **kwargs):
                 num_keep_retention_snaps=5,
                 iceberg_db="sales_business",
                 iceberg_db_stg="sales_staging",
-                table_properties=generate_table_properties_sql(tbl)
+                table_properties=generate_table_properties_sql(tbl),
+                trigger_rule='all_success'
             )
             task_load_warehouse
         return task_group
