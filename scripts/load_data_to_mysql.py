@@ -409,7 +409,7 @@ def main():
         load_oil(cursor, connection, CSV_FILE_PATH + "oil.csv", "oil")
         load_stores(cursor, connection, CSV_FILE_PATH + "stores.csv", "stores")
         load_transactions(cursor, connection, CSV_FILE_PATH + "transactions.csv", "transactions")
-        # load_sales(cursor, connection, CSV_FILE_PATH + "sales.csv", "sales")
+        load_sales(cursor, connection, CSV_FILE_PATH + "sales.csv", "sales")
         # sales_file = os.path.join(CSV_FILE_PATH, "sales.csv")
         # load_all_sales(cursor, connection, sales_file, "sales")
     except Exception as e:

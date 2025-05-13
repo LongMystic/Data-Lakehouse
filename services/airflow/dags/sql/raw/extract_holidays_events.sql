@@ -7,5 +7,3 @@ SELECT
     description,
     transferred
 FROM holidays_events
-LIMIT {limit}
-OFFSET {offset}
