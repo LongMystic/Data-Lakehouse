@@ -130,6 +130,24 @@ class Sales(Table):
         self.SQL = "sql/staging/transform_sales.sql"
 
 
+class SalesLimit(Table):
+    """
+    Class representing the sales table in the sales schema.
+    """
+    def __init__(self, table_name: str):
+        super().__init__(table_name)
+        self.table_name = table_name
+        self.iceberg_db = "sales_business"
+        self.COLUMNS = [
+            {"name": "id", "type": "BIGINT", "comment": ""},
+            {"name": "date", "type": "TIMESTAMP", "comment": ""},
+            {"name": "store_nbr", "type": "INT", "comment": ""},
+            {"name": "item_nbr", "type": "INT", "comment": ""},
+            {"name": "unit_sales", "type": "DOUBLE", "comment": ""},
+            {"name": "onpromotion", "type": "INT", "comment": ""}
+        ]
+        self.SQL = "sql/staging/transform_sales_limit.sql"
+
 # Instantiate staging table classes
 category_dim = Category('category_dim')
 holidays_events_dim = HolidaysEvents('holidays_events_dim')
@@ -138,6 +156,7 @@ oil_fact = Oil('oil_fact')
 stores_dim = Stores('stores_dim')
 transactions_fact = Transactions('transactions_fact')
 sales_fact = Sales('sales_fact')
+sales_limit_fact = SalesLimit('sales_limit_fact')
 
 ALL_TABLES = [
     # category_dim,
@@ -146,5 +165,6 @@ ALL_TABLES = [
     oil_fact,
     stores_dim,
     transactions_fact,
-    sales_fact
+    # sales_fact,
+    sales_limit_fact
 ]

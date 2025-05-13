@@ -130,6 +130,24 @@ class Sales(Table):
         ]
         self.SQL = "/sql/raw/extract_sales.sql"
 
+class SalesLimit(Table):
+    """
+    Class representing the sales table.
+    """
+    def __init__(self, table_name: str):
+        super().__init__(table_name)
+        self.table_name = table_name
+        self.iceberg_db = "sales_staging"
+        self.COLUMNS = [
+            {"name": "id", "type": "BIGINT", "comment": ""},
+            {"name": "date", "type": "TIMESTAMP", "comment": ""},
+            {"name": "store_nbr", "type": "INT", "comment": ""},
+            {"name": "item_nbr", "type": "INT", "comment": ""},
+            {"name": "unit_sales", "type": "DOUBLE", "comment": ""},
+            {"name": "onpromotion", "type": "INT", "comment": ""}
+        ]
+        self.SQL = "/sql/raw/extract_sales_limit.sql"
+
 
 category = Category('category')
 holidays_events = HolidaysEvents('holidays_events')
@@ -138,6 +156,7 @@ oil = Oil('oil')
 stores = Stores('stores')
 transactions = Transactions('transactions')
 sales = Sales('sales')
+sales_limit = SalesLimit('sales_limit')
 ALL_TABLES = [
     # category,
     holidays_events,
@@ -145,5 +164,6 @@ ALL_TABLES = [
     oil,
     stores,
     transactions,
-    sales
+    # sales,
+    sales_limit
 ]

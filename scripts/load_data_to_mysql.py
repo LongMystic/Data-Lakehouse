@@ -275,7 +275,7 @@ def load_transactions(cursor, connection, csv_file_path, table_name):
 def load_sales(cursor, connection, csv_file_path, table_name):
     row_id = 0
     # Read CSV file
-    df = pd.read_csv(csv_file_path, encoding="utf-8", sep=",", nrows=100)
+    df = pd.read_csv(csv_file_path, encoding="utf-8", sep=",", nrows=10000)
 
     # Replace NaN with None for MySQL
     df = df.where(pd.notna(df), None)
@@ -409,7 +409,7 @@ def main():
         load_oil(cursor, connection, CSV_FILE_PATH + "oil.csv", "oil")
         load_stores(cursor, connection, CSV_FILE_PATH + "stores.csv", "stores")
         load_transactions(cursor, connection, CSV_FILE_PATH + "transactions.csv", "transactions")
-        load_sales(cursor, connection, CSV_FILE_PATH + "sales.csv", "sales")
+        load_sales(cursor, connection, CSV_FILE_PATH + "sales.csv", "sales_limit")
         # sales_file = os.path.join(CSV_FILE_PATH, "sales.csv")
         # load_all_sales(cursor, connection, sales_file, "sales")
     except Exception as e:
