@@ -13,7 +13,7 @@ from iceberg_operator import IcebergOperator
 
 from schema.schema_raw import ALL_TABLES as ALL_TABLES_RAW
 from schema.schema_staging import ALL_TABLES as ALL_TABLES_STG
-
+from schema.schema_business import ALL_TABLES as ALL_TABLES_BUSINESS
 from utils.utils import get_variables, generate_table_properties_sql
 DAG_NAME = "mysql_to_iceberg_daily"
 variable = get_variables(DAG_NAME)
@@ -87,3 +87,22 @@ def load_warehouse(task_group_id, **kwargs):
             )
             task_load_warehouse
         return task_group
+    
+
+def load_agg_warehouse(task_group_id, **kwargs):
+    with TaskGroup(task_group_id) as task_group:
+        spark_conn_id = kwargs.get("spark_conn_id")
+        for tbl in ALL_TABLES_BUSINESS:
+            tbl_name = tbl.table_name
+            task_load_agg_warehouse = IcebergOperator(
+                task_id=f"load_table_{tbl_name}_to_business_layer",
+                spark_conn_id=spark_conn_id,
+                sql_path=tbl.SQL,
+                iceberg_table_name=tbl.table_name,
+                iceberg_db="sales_business",
+                table_properties=generate_table_properties_sql(tbl),
+                trigger_rule='all_success'
+            )
+            task_load_agg_warehouse
+        return task_group
+

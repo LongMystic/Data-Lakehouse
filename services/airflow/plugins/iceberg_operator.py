@@ -83,8 +83,10 @@ class IcebergOperator(BaseOperator):
     def run_sql(self, cursor):
         with open(f"/opt/airflow/dags/{self.sql_path}", 'r') as file:
             sql_content = file.read()
-            sql_content = sql_content.replace("{iceberg_db_stg}", self.iceberg_db_stg)
-            sql_content = sql_content.replace("{iceberg_db}", self.iceberg_db)
+            if "{iceberg_db_stg}" in sql_content:
+                sql_content = sql_content.replace("{iceberg_db_stg}", self.iceberg_db_stg)
+            if "{iceberg_db}" in sql_content:
+                sql_content = sql_content.replace("{iceberg_db}", self.iceberg_db)
         for sql in sql_content.split(';'):
             cursor.execute(sql)
 

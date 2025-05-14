@@ -3,13 +3,13 @@ import logging
 import pendulum
 from airflow.models import DAG
 
-from task_group.task_group import load_raw, load_staging, load_warehouse
+from task_group.task_group import load_raw, load_staging, load_warehouse, load_agg_warehouse
 from datetime import timedelta, datetime
 from utils.utils import get_variables
 from utils.constant import *
 from utils.notify_telegram import notify_success, notify_failure
 
-DAG_NAME = "mysql_to_iceberg_daily"
+DAG_NAME = "sales_reporting_daily"
 
 SCHEDULE_INTERVAL = "00 02 * * *"
 
@@ -49,6 +49,11 @@ with DAG(
         **variable
     )
 
+    task_load_to_agg_warehouse = load_agg_warehouse(
+        task_group_id="etl_layer_business_agg",
+        **variable
+    )
+
     (
-        task_load_to_raw >> task_load_to_staging >> task_load_to_warehouse
+        task_load_to_raw >> task_load_to_staging >> task_load_to_warehouse >> task_load_to_agg_warehouse
     )
