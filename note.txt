@@ -50,3 +50,12 @@ airflow connections add 'spark_conn_id' \
     --conn-schema 'default' \
     --conn-login 'spark_user' \
     --conn-extra '{"auth": "NOSASL"}'
+
+
+avg by (instance) (
+  process_resident_memory_bytes{job=~"namenode|datanode1|datanode2|resourcemanager|nodemanager1|nodemanager2"}
+) / 1024 / 1024
+
+avg by (instance) (
+  process_resident_memory_bytes{job="namenode"}
+) / 1024 / 1024

@@ -369,6 +369,7 @@ services:
     volumes:
       - ./services/superset/conf/superset_config.py:/app/pythonpath/superset_config.py
       - ./services/superset/sqlalchemy_hive.py:/usr/local/lib/python3.10/site-packages/pyhive/sqlalchemy_hive.py
+      - ./services/superset/data:/app/superset_home
     ports:
       - "8099:8088"
     networks:
@@ -385,10 +386,14 @@ services:
     container_name: prometheus
     volumes:
       - ./services/prometheus/conf/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./services/prometheus/data:/prometheus
     ports:
       - "9090:9090"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
     networks:
       - datn_2025_network
     healthcheck:
@@ -404,6 +409,9 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./services/grafana/data:/var/lib/grafana
+      - ./services/grafana/provisioning/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     ports:
       - "3000:3000"
     networks:
