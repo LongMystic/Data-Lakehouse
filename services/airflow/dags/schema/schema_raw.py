@@ -164,6 +164,6 @@ ALL_TABLES = [
     oil,
     stores,
     transactions,
-    # sales,
+    sales,
     sales_limit
 ]

@@ -1,4 +1,4 @@
-INSERT OVERWRITE TABLE sales_business.item_report
+INSERT OVERWRITE TABLE iceberg.sales_business.item_report
 SELECT 
   `date`,
   sf.item_nbr,
@@ -6,7 +6,6 @@ SELECT
   class,
   perishable,
   city,
-  state,
   unit_sales
 FROM sales_business.sales_limit_fact sf
 LEFT JOIN sales_business.stores_dim st on sf.store_nbr = st.store_nbr
