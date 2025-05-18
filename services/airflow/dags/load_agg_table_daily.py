@@ -3,15 +3,15 @@ import logging
 import pendulum
 from airflow.models import DAG
 
-from task_group.task_group import load_raw, load_staging, load_warehouse
+from task_group.task_group import load_agg_warehouse
 from datetime import timedelta, datetime
 from utils.utils import get_variables
 from utils.constant import *
 from utils.notify_telegram import notify_success, notify_failure
 
-DAG_NAME = "sales_reporting_daily"
+DAG_NAME = "load_agg_table_daily"
 
-SCHEDULE_INTERVAL = "00 02 * * *"
+SCHEDULE_INTERVAL = "00 03 * * *"
 
 default_args = {
     "owner": "airflow",
@@ -34,21 +34,12 @@ with DAG(
 
 ) as dag:
     logging.info(str(variable))
-    task_load_to_raw = load_raw(
-        task_group_id="etl_layer_raw",
-        **variable
-    )
 
-    task_load_to_staging = load_staging(
-        task_group_id="etl_layer_staging",
-        **variable
-    )
-
-    task_load_to_warehouse = load_warehouse(
-        task_group_id="etl_layer_business",
+    task_load_to_agg_warehouse = load_agg_warehouse(
+        task_group_id="etl_layer_business_agg",
         **variable
     )
 
     (
-        task_load_to_raw >> task_load_to_staging >> task_load_to_warehouse
+        task_load_to_agg_warehouse
     )

@@ -161,8 +161,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 2G
+          cpus: '3'
+          memory: 3G
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
@@ -190,8 +190,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 2G
+          cpus: '3'
+          memory: 3G
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml

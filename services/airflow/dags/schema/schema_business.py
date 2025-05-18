@@ -29,12 +29,9 @@ class StoreReport(Table):
             {"name": "state", "type": "STRING", "comment": "State"},
             {"name": "store_type", "type": "STRING", "comment": "Store Type"},
             {"name": "store_cluster", "type": "STRING", "comment": "Store Cluster"},
-            {"name": "oil_price", "type": "FLOAT", "comment": "Oil Price"},
             {"name": "total_sales", "type": "INT", "comment": "Total Sales"},
-            {"name": "unique_items_sold", "type": "INT", "comment": "Unique Items Sold"},
             {"name": "promotional_sales", "type": "INT", "comment": "Promotional Sales"},
-            {"name": "regular_sales", "type": "INT", "comment": "Regular Sales"},
-            {"name": "items_on_promotion", "type": "INT", "comment": "Items on Promotion"}
+            {"name": "regular_sales", "type": "INT", "comment": "Regular Sales"}
         ]
         self.SQL = "sql/business/load_agg_store_report.sql"
 
@@ -49,11 +46,7 @@ class ProductReport(Table):
             {"name": "product_family", "type": "STRING", "comment": "Product Family"},
             {"name": "product_class", "type": "STRING", "comment": "Product Class"},
             {"name": "perishable", "type": "INT", "comment": "Perishable"},
-            {"name": "total_sales", "type": "INT", "comment": "Total Sales"},
-            {"name": "stores_sold_in", "type": "INT", "comment": "Stores Sold In"},
-            {"name": "promotional_sales", "type": "INT", "comment": "Promotional Sales"},
-            {"name": "regular_sales", "type": "INT", "comment": "Regular Sales"},
-            {"name": "stores_with_promotion", "type": "INT", "comment": "Stores with Promotion"}
+            {"name": "total_sales", "type": "INT", "comment": "Total Sales"}
         ]
         self.SQL = "sql/business/load_agg_product_report.sql"
 
