@@ -2,8 +2,8 @@ import pymysql
 import pandas as pd
 import os
 import time
-# Database connection details
-DB_HOST = "localhost"  # Change if MySQL is running in a container
+
+DB_HOST = "localhost"
 DB_PORT = 3306
 DB_USER = "root"
 DB_PASSWORD = "root"
