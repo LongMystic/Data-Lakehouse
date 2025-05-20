@@ -11,7 +11,7 @@ from utils.notify_telegram import notify_success, notify_failure
 
 DAG_NAME = "sales_reporting_daily"
 
-SCHEDULE_INTERVAL = "00 02 * * *"
+SCHEDULE_INTERVAL = "00 01 * * *"
 
 default_args = {
     "owner": "airflow",
