@@ -59,7 +59,7 @@ def load_staging(task_group_id, **kwargs):
             task_load_staging = HDFSToIcebergOperator(
                 task_id=f"load_table_{tbl_name}_to_staging_layer",
                 iceberg_table_name=tbl_name,
-                num_keep_retention_snaps=5,
+                num_keep_retention_snaps=2,
                 iceberg_db="sales_staging",
                 spark_conn_id=spark_conn_id,
                 table_properties=generate_table_properties_sql(tbl),
@@ -79,7 +79,7 @@ def load_warehouse(task_group_id, **kwargs):
                 spark_conn_id=spark_conn_id,
                 sql_path=tbl.SQL,
                 iceberg_table_name=tbl.table_name,
-                num_keep_retention_snaps=5,
+                num_keep_retention_snaps=2,
                 iceberg_db="sales_business",
                 iceberg_db_stg="sales_staging",
                 table_properties=generate_table_properties_sql(tbl),

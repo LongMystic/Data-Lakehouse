@@ -13,7 +13,7 @@ class IcebergOperator(BaseOperator):
             spark_conn_id: str=None,
             sql_path="",
             iceberg_table_name=None,
-            num_keep_retention_snaps=5,
+            num_keep_retention_snaps=2,
             iceberg_db="default",
             iceberg_db_stg="default",
             table_properties=None,
