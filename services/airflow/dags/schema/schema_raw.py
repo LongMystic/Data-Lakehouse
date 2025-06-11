@@ -165,5 +165,5 @@ ALL_TABLES = [
     stores,
     transactions,
     sales,
-    sales_limit
+    # sales_limit
 ]

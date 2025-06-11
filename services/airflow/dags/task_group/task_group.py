@@ -1,5 +1,5 @@
 import logging
-
+from datetime import datetime, timedelta
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.task_group import TaskGroup
@@ -22,15 +22,26 @@ def load_raw(task_group_id, **kwargs):
     with TaskGroup(task_group_id) as task_group:
         spark_conn_id = kwargs.get("spark_conn_id")
         mysql_conn_id = kwargs.get("mysql_conn_id")
-        
+        business_date = kwargs.get("business_date")
+
         partition_column = "id"
         limit = 15000000
         offset = 0
+
+        start_date = '2013-01-01'
+        end_date = '2018-01-01'
+
+        d = (datetime.now() - business_date).days % 5
+        from_date = start_date + timedelta(days=d)
+        to_date = end_date + timedelta(days=d+1)
 
         for tbl in ALL_TABLES_RAW:
             tbl_name = tbl.table_name
             if tbl_name == "sales":
                 offset = kwargs.get("offset", 0)
+                params = { "limit": str(limit), "from_date": from_date, "to_date": to_date }
+            else:
+                params = { "limit": str(limit) }
             
             offset = offset * limit
             
@@ -38,13 +49,13 @@ def load_raw(task_group_id, **kwargs):
                 task_id = f"load_table_{tbl_name}_to_raw_layer",
                 mysql_conn_id=mysql_conn_id,
                 spark_conn_id=spark_conn_id,
-                hdfs_path=f"/raw/{tbl_name}_tmp",
+                hdfs_path=f"/raw/{tbl_name}_tmp/{datetime.now().strftime('%Y-%m-%d')}",
                 schema="test",
-                params = { "limit": str(limit)},
+                params = params,
                 table=tbl_name,
                 sql=tbl.SQL,
                 partition_column=partition_column,
-                trigger_rule='all_success'
+                trigger_rule='all_done'
             )
             task_load_raw
 
@@ -63,7 +74,7 @@ def load_staging(task_group_id, **kwargs):
                 iceberg_db="sales_staging",
                 spark_conn_id=spark_conn_id,
                 table_properties=generate_table_properties_sql(tbl),
-                trigger_rule='all_success'
+                trigger_rule='all_done'
             )
             task_load_staging
     return task_group
@@ -83,7 +94,7 @@ def load_warehouse(task_group_id, **kwargs):
                 iceberg_db="sales_business",
                 iceberg_db_stg="sales_staging",
                 table_properties=generate_table_properties_sql(tbl),
-                trigger_rule='all_success'
+                trigger_rule='all_done'
             )
             task_load_warehouse
         return task_group
@@ -101,7 +112,7 @@ def load_agg_warehouse(task_group_id, **kwargs):
                 iceberg_table_name=tbl.table_name,
                 iceberg_db="sales_business",
                 table_properties=generate_table_properties_sql(tbl),
-                trigger_rule='all_success'
+                trigger_rule='all_done'
             )
             task_load_agg_warehouse
         return task_group

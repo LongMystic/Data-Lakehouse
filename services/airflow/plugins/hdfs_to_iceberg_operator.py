@@ -2,8 +2,9 @@ from airflow.plugins_manager import AirflowPlugin
 from utils.spark_connections import get_spark_thrift_conn
 from airflow.models import BaseOperator
 from utils.utils import generate_create_table_sql
-
+from datetime import datetime
 import logging
+import subprocess
 
 _logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class HDFSToIcebergOperator(BaseOperator):
         create_tmp_table_sql = f"""
             CREATE TABLE default.{self.iceberg_table_name}_tmp
             USING parquet
-            LOCATION '/raw/{self.iceberg_table_name}_tmp/batch_[0-9]*'
+            LOCATION '/raw/{self.iceberg_table_name}_tmp/{datetime.now().strftime('%Y-%m-%d')}/batch_[0-9]*'
         """
 
         _logger.info("\nCreating tmp table with glob pattern for batch_[0-9]*\n")
@@ -89,6 +90,16 @@ class HDFSToIcebergOperator(BaseOperator):
         _logger.info("\nDropping tmp table\n")
         cursor.execute(drop_tmp_table_sql)
 
+    def remove_raw_location(self, cursor):
+        raw_path = f"/raw/{self.iceberg_table_name}_tmp/{datetime.now().strftime('%Y-%m-%d')}"
+        _logger.info(f"\nRemoving raw location folder: {raw_path}\n")
+        try:
+            subprocess.run(['hdfs', 'dfs', '-rm', '-r', raw_path], check=True)
+            _logger.info(f"Successfully removed raw location folder: {raw_path}")
+        except subprocess.CalledProcessError as e:
+            _logger.error(f"Failed to remove raw location folder: {e}")
+            raise
+
     def execute(self, context):
         conn = self.get_spark_conn()
         cursor = conn.cursor()
@@ -104,6 +115,7 @@ class HDFSToIcebergOperator(BaseOperator):
             self.create_staging_table(cursor)
             self.insert_data_into_staging_table(cursor)
             self.drop_tmp_table(cursor)
+            self.remove_raw_location(cursor)
             cursor.close()
             conn.close()
             _logger.info("Data transfer completed successfully.")
