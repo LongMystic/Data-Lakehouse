@@ -22,6 +22,9 @@ ALTER TABLE category CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 
 === START HADOOP CLUSTER ===
 docker compose up namenode datanode1 datanode2 resourcemanager nodemanager1 nodemanager2 -d
+docker compose up hive-metastore mysql superset -d
+docker compose up spark-thrift-server -d
+docker compose up statsd-exporter prometheus grafana -d
 
 === START AIRFLOW CLUSTER ===
 docker compose up postgres redis airflow-webserver airflow-scheduler airflow-worker airflow-triggerer airflow-init -d

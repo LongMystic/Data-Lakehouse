@@ -4,7 +4,6 @@ from airflow.models import BaseOperator
 from utils.utils import generate_create_table_sql
 from datetime import datetime
 import logging
-import subprocess
 
 _logger = logging.getLogger(__name__)
 
@@ -94,11 +93,28 @@ class HDFSToIcebergOperator(BaseOperator):
         raw_path = f"/raw/{self.iceberg_table_name}_tmp/{datetime.now().strftime('%Y-%m-%d')}"
         _logger.info(f"\nRemoving raw location folder: {raw_path}\n")
         try:
-            subprocess.run(['hdfs', 'dfs', '-rm', '-r', raw_path], check=True)
+            # Use Spark SQL to remove the directory
+            remove_path_sql = f"""
+                DROP TABLE IF EXISTS default.{self.iceberg_table_name}_tmp;
+                CREATE OR REPLACE TEMPORARY VIEW temp_view_{self.iceberg_table_name} AS SELECT 1;
+                INSERT OVERWRITE DIRECTORY '{raw_path}' SELECT * FROM temp_view_{self.iceberg_table_name};
+                DROP VIEW temp_view_{self.iceberg_table_name}
+            """
+            for query in remove_path_sql.split(";"):
+                cursor.execute(query)
             _logger.info(f"Successfully removed raw location folder: {raw_path}")
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             _logger.error(f"Failed to remove raw location folder: {e}")
             raise
+
+    def clean_staging_table(self, cursor):
+        remove_orphan_files_sql = f"""
+            CALL iceberg.system.remove_orphan_files (
+                table => '{self.iceberg_db}.{self.iceberg_table_name}'
+            )
+        """
+        _logger.info("\nRemoving orphan files\n")
+        cursor.execute(remove_orphan_files_sql)
 
     def execute(self, context):
         conn = self.get_spark_conn()
@@ -116,6 +132,7 @@ class HDFSToIcebergOperator(BaseOperator):
             self.insert_data_into_staging_table(cursor)
             self.drop_tmp_table(cursor)
             self.remove_raw_location(cursor)
+            self.clean_staging_table(cursor)
             cursor.close()
             conn.close()
             _logger.info("Data transfer completed successfully.")

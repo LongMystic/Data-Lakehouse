@@ -95,9 +95,15 @@ class MySQLToHDFSOperatorV3(BaseOperator):
             _logger.info(f"Processing batch {batch_num + 1}/{num_batches} (IDs {start_val} to {end_val})")
             
             # Create batch-specific query
+            operator = ""
+            if "WHERE" in base_query:
+                operator = "AND"
+            else:
+                operator = "WHERE"
+
             batch_query = f"""
                 ({base_query}
-                    WHERE {self.partition_column} >= {start_val} 
+                    {operator} {self.partition_column} >= {start_val} 
                     AND {self.partition_column} <= {end_val}
                 ) as filtered_data 
             """

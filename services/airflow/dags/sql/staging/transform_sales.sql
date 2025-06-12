@@ -11,7 +11,17 @@ UPDATE SET
     T.unit_sales = S.unit_sales,
     T.onpromotion = S.onpromotion
 WHEN NOT MATCHED THEN
-INSERT VALUES (
+INSERT 
+(
+    id,
+    date,
+    store_nbr,
+    item_nbr,
+    unit_sales,
+    onpromotion
+)
+
+ VALUES (
     S.id,
     S.date,
     S.store_nbr,

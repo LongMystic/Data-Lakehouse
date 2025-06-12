@@ -1,11 +1,5 @@
-import os
-import pandas as pd
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
-for file in os.listdir('./data'):
-    if 'sales.csv' in file:
-        df = pd.read_csv(os.path.join('./data', file), nrows=10)
-        print(f"{file}")
-        print(len(df))
-        print(df.columns)
-        print(df.head())
-        print()
+business_date = '2025-01-01'
+print(business_date.strftime('%Y-%m-%d'))

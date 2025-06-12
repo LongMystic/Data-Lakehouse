@@ -1,5 +1,6 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.task_group import TaskGroup
@@ -22,24 +23,27 @@ def load_raw(task_group_id, **kwargs):
     with TaskGroup(task_group_id) as task_group:
         spark_conn_id = kwargs.get("spark_conn_id")
         mysql_conn_id = kwargs.get("mysql_conn_id")
-        business_date = kwargs.get("business_date")
+        business_date = datetime.strptime(kwargs.get("business_date"), '%Y-%m-%d').date()
 
         partition_column = "id"
         limit = 15000000
         offset = 0
 
-        start_date = '2013-01-01'
-        end_date = '2018-01-01'
+        start_date = datetime.strptime('2013-01-01', '%Y-%m-%d').date()
 
-        d = (datetime.now() - business_date).days % 5
-        from_date = start_date + timedelta(days=d)
-        to_date = end_date + timedelta(days=d+1)
+        d = (datetime.now().date() - business_date).days % 5
+        from_date = start_date + relativedelta(years=d)
+        to_date = start_date + relativedelta(years=d+1)
 
         for tbl in ALL_TABLES_RAW:
             tbl_name = tbl.table_name
             if tbl_name == "sales":
                 offset = kwargs.get("offset", 0)
-                params = { "limit": str(limit), "from_date": from_date, "to_date": to_date }
+                params = { 
+                    "limit": str(limit), 
+                    "from_date": from_date.strftime("'%Y-%m-%d'"),  # Add quotes for SQL
+                    "to_date": to_date.strftime("'%Y-%m-%d'")  # Add quotes for SQL
+                }
             else:
                 params = { "limit": str(limit) }
             
@@ -116,4 +120,21 @@ def load_agg_warehouse(task_group_id, **kwargs):
             )
             task_load_agg_warehouse
         return task_group
+
+def clean_raw(task_group_id, **kwargs):
+    with TaskGroup(task_group_id) as task_group:
+        spark_conn_id = kwargs.get("spark_conn_id")
+        for tbl in ALL_TABLES_RAW:
+            tbl_name = tbl.table_name
+            task_clean_raw = IcebergOperator(
+                task_id=f"clean_table_{tbl_name}_from_raw_layer",
+                spark_conn_id=spark_conn_id,
+                sql_path=tbl.SQL,
+                iceberg_table_name=tbl.table_name,
+                iceberg_db="sales_staging",
+                trigger_rule='all_done'
+            )
+            task_clean_raw
+        return task_group
+    
 
