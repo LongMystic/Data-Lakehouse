@@ -1,5 +1,5 @@
 from typing import Any
-
+from datetime import datetime
 from airflow.operators.python import BaseOperator
 from airflow.utils.context import Context
 from airflow.plugins_manager import AirflowPlugin
@@ -39,6 +39,24 @@ class MySQLToHDFSOperatorV3(BaseOperator):
         self.partition_column = partition_column
         self.batch_size = batch_size
 
+    def remove_raw_location(self, cursor):
+        raw_path = f"/raw/{self.table}_tmp/{datetime.now().strftime('%Y-%m-%d')}"
+        _logger.info(f"\nRemoving raw location folder: {raw_path}\n")
+        try:
+            # Use Spark SQL to remove the directory
+            remove_path_sql = f"""
+                DROP TABLE IF EXISTS default.{self.table}_tmp;
+                CREATE OR REPLACE TEMPORARY VIEW temp_view_{self.table} AS SELECT 1;
+                INSERT OVERWRITE DIRECTORY '{raw_path}' SELECT * FROM temp_view_{self.table};
+                DROP VIEW temp_view_{self.table}
+            """
+            for query in remove_path_sql.split(";"):
+                cursor.execute(query)
+            _logger.info(f"Successfully removed raw location folder: {raw_path}")
+        except Exception as e:
+            _logger.error(f"Failed to remove raw location folder: {e}")
+            raise
+
     def execute(self, context: Context) -> Any:
         _logger.info(f"Using MySQL connection id: {self.mysql_conn_id} with schema {self.schema}")
         _logger.info(f"Using Spark connection id: {self.spark_conn_id}")
@@ -47,7 +65,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
         # Get Spark connection
         spark_conn = get_spark_thrift_conn(self.spark_conn_id)
         spark_cursor = spark_conn.cursor()
-
+        self.remove_raw_location(spark_cursor)
         # Get MySQL connection
         mysql_conn = BaseHook.get_connection(self.mysql_conn_id)
         mysql_connection = pymysql.connect(

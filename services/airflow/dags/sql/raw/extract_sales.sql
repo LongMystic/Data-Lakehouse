@@ -6,4 +6,3 @@ SELECT
     unit_sales,
     onpromotion
 FROM test.sales
-WHERE date >= {from_date} AND date <= {to_date}

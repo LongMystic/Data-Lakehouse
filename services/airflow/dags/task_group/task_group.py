@@ -26,8 +26,6 @@ def load_raw(task_group_id, **kwargs):
         business_date = datetime.strptime(kwargs.get("business_date"), '%Y-%m-%d').date()
 
         partition_column = "id"
-        limit = 15000000
-        offset = 0
 
         start_date = datetime.strptime('2013-01-01', '%Y-%m-%d').date()
 
@@ -35,19 +33,15 @@ def load_raw(task_group_id, **kwargs):
         from_date = start_date + relativedelta(years=d)
         to_date = start_date + relativedelta(years=d+1)
 
+        params = {}
         for tbl in ALL_TABLES_RAW:
             tbl_name = tbl.table_name
             if tbl_name == "sales":
-                offset = kwargs.get("offset", 0)
                 params = { 
-                    "limit": str(limit), 
-                    "from_date": from_date.strftime("'%Y-%m-%d'"),  # Add quotes for SQL
-                    "to_date": to_date.strftime("'%Y-%m-%d'")  # Add quotes for SQL
+                    # "from_date": from_date.strftime("'%Y-%m-%d'"),  # Add quotes for SQL
+                    # "to_date": to_date.strftime("'%Y-%m-%d'")  # Add quotes for SQL
                 }
-            else:
-                params = { "limit": str(limit) }
             
-            offset = offset * limit
             
             task_load_raw = MySQLToHDFSOperatorV3(
                 task_id = f"load_table_{tbl_name}_to_raw_layer",

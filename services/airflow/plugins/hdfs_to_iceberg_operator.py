@@ -67,7 +67,7 @@ class HDFSToIcebergOperator(BaseOperator):
 
 
         drop_staging_table_sql = f"""
-            DROP TABLE IF EXISTS {self.iceberg_db}.{self.iceberg_table_name};
+            DROP TABLE IF EXISTS {self.iceberg_db}.{self.iceberg_table_name} PURGE;
         """
         _logger.info("\nDropping staging table\n")
         cursor.execute(drop_staging_table_sql)
