@@ -9,6 +9,7 @@ from airflow.operators.empty import EmptyOperator
 from mysql_to_hdfs_operator import MySQLToHDFSOperator
 from mysql_to_hdfs_operator_v2 import MySQLToHDFSOperatorV2
 from mysql_to_hdfs_operator_v3 import MySQLToHDFSOperatorV3
+from get_batch_info_operator import GetBatchInfoOperator
 from hdfs_to_iceberg_operator import HDFSToIcebergOperator
 from iceberg_operator import IcebergOperator
 
@@ -29,33 +30,34 @@ def load_raw(task_group_id, **kwargs):
 
         start_date = datetime.strptime('2013-01-01', '%Y-%m-%d').date()
 
-        d = (datetime.now().date() - business_date).days % 5
-        from_date = start_date + relativedelta(years=d)
-        to_date = start_date + relativedelta(years=d+1)
-
-        params = {}
         for tbl in ALL_TABLES_RAW:
             tbl_name = tbl.table_name
-            if tbl_name == "sales":
-                params = { 
-                    # "from_date": from_date.strftime("'%Y-%m-%d'"),  # Add quotes for SQL
-                    # "to_date": to_date.strftime("'%Y-%m-%d'")  # Add quotes for SQL
-                }
-            
-            
-            task_load_raw = MySQLToHDFSOperatorV3(
-                task_id = f"load_table_{tbl_name}_to_raw_layer",
+
+            # Step 1: Get the list of batches for the table
+            get_batch_info = GetBatchInfoOperator(
+                task_id=f"get_batch_info_for_{tbl_name}",
                 mysql_conn_id=mysql_conn_id,
-                spark_conn_id=spark_conn_id,
-                hdfs_path=f"/raw/{tbl_name}_tmp/{datetime.now().strftime('%Y-%m-%d')}",
                 schema="test",
-                params = params,
                 table=tbl_name,
                 sql=tbl.SQL,
                 partition_column=partition_column,
                 trigger_rule='all_done'
             )
-            task_load_raw
+
+            # Step 2: Dynamically map tasks to process each batch in parallel
+            load_raw_task = MySQLToHDFSOperatorV3.partial(
+                task_id=f"load_table_{tbl_name}_to_raw_layer",
+                mysql_conn_id=mysql_conn_id,
+                spark_conn_id=spark_conn_id,
+                hdfs_path=f"/raw/{tbl_name}_tmp/{datetime.now().strftime('%Y-%m-%d')}",
+                schema="test",
+                table=tbl_name,
+                sql=tbl.SQL,
+                partition_column=partition_column,
+                trigger_rule='all_done'
+            ).expand(
+                batch_info=get_batch_info.output
+            )
 
     return task_group
 

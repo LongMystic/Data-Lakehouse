@@ -24,7 +24,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
             jdbc_options: dict = None,
             params: dict = {},
             partition_column: str = None,
-            batch_size: int = 1000000,  # Number of rows per batch
+            batch_info: dict = None,
             *args,
             **kwargs
     ):
@@ -37,7 +37,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
         self.sql = sql
         self.params = params
         self.partition_column = partition_column
-        self.batch_size = batch_size
+        self.batch_info = batch_info
 
     def remove_raw_location(self, cursor):
         raw_path = f"/raw/{self.table}_tmp/{datetime.now().strftime('%Y-%m-%d')}"
@@ -48,7 +48,7 @@ class MySQLToHDFSOperatorV3(BaseOperator):
                 DROP TABLE IF EXISTS default.{self.table}_tmp;
                 CREATE OR REPLACE TEMPORARY VIEW temp_view_{self.table} AS SELECT 1;
                 INSERT OVERWRITE DIRECTORY '{raw_path}' SELECT * FROM temp_view_{self.table};
-                DROP VIEW temp_view_{self.table}
+                DROP VIEW IF EXISTS temp_view_{self.table}
             """
             for query in remove_path_sql.split(";"):
                 cursor.execute(query)
@@ -65,17 +65,9 @@ class MySQLToHDFSOperatorV3(BaseOperator):
         # Get Spark connection
         spark_conn = get_spark_thrift_conn(self.spark_conn_id)
         spark_cursor = spark_conn.cursor()
-        self.remove_raw_location(spark_cursor)
+        # self.remove_raw_location(spark_cursor)
         # Get MySQL connection
         mysql_conn = BaseHook.get_connection(self.mysql_conn_id)
-        mysql_connection = pymysql.connect(
-            host=mysql_conn.host,
-            port=mysql_conn.port,
-            user=mysql_conn.login,
-            password=mysql_conn.password,
-            database=self.schema
-        )
-        mysql_cursor = mysql_connection.cursor()
 
         _logger.info(f"Using SQL PATH: {self.sql}")
 
@@ -90,79 +82,61 @@ class MySQLToHDFSOperatorV3(BaseOperator):
                     base_query = base_query.replace(f"{{{param}}}", self.params[param])
             _logger.info(f"Using SQL file: {base_query}")
 
-        # Get min and max values directly from MySQL using a lightweight query
-        min_max_query = f"""
-            SELECT MIN({self.partition_column}) as min_val, 
-                   MAX({self.partition_column}) as max_val 
-            FROM ({base_query}) as base
+        start_val = self.batch_info['start_val']
+        end_val = self.batch_info['end_val']
+        batch_num = self.batch_info['batch_num']
+        
+        _logger.info(f"Processing batch {batch_num} (IDs {start_val} to {end_val})")
+        
+        # Create batch-specific query
+        operator = ""
+        if "WHERE" in base_query:
+            operator = "AND"
+        else:
+            operator = "WHERE"
+
+        batch_query = f"""
+            ({base_query}
+                {operator} {self.partition_column} >= {start_val} 
+                AND {self.partition_column} <= {end_val}
+            ) as filtered_data 
         """
-        mysql_cursor.execute(min_max_query)
-        min_val, max_val = mysql_cursor.fetchone()
-        _logger.info(f"Min value: {min_val}, Max value: {max_val}")
 
-        # Calculate number of batches
-        total_rows = max_val - min_val + 1
-        num_batches = (total_rows + self.batch_size - 1) // self.batch_size
-        _logger.info(f"Processing {total_rows} rows in {num_batches} batches")
-
-        # Process each batch independently
-        for batch_num in range(num_batches):
-            start_val = min_val + (batch_num * self.batch_size)
-            end_val = min(start_val + self.batch_size - 1, max_val)
+        # Process batch
+        batch_path = f"{self.hdfs_path}/batch_{batch_num}"
+        spark_query = f"""
+            SET spark.sql.legacy.allowNonEmptyLocationInCTAS=true;
             
-            _logger.info(f"Processing batch {batch_num + 1}/{num_batches} (IDs {start_val} to {end_val})")
+            CREATE OR REPLACE TEMPORARY VIEW {self.table}_view_{batch_num}
+            USING org.apache.spark.sql.jdbc
+            OPTIONS (
+              url "jdbc:mysql://{mysql_conn.host}:{mysql_conn.port}/{self.schema}",
+              dbtable "{batch_query}",
+              user '{mysql_conn.login}',
+              password '{mysql_conn.password}'
+            );
             
-            # Create batch-specific query
-            operator = ""
-            if "WHERE" in base_query:
-                operator = "AND"
-            else:
-                operator = "WHERE"
+            DROP TABLE IF EXISTS {self.table}_tmp_{batch_num};
+            CREATE TABLE {self.table}_tmp_{batch_num}
+            USING parquet
+            OPTIONS (path '{batch_path}')
+            AS SELECT * FROM {self.table}_view_{batch_num};
+            
+            DROP VIEW IF EXISTS {self.table}_view_{batch_num}
+        """
 
-            batch_query = f"""
-                ({base_query}
-                    {operator} {self.partition_column} >= {start_val} 
-                    AND {self.partition_column} <= {end_val}
-                ) as filtered_data 
-            """
+        for query in spark_query.split(';'):
+            if query.strip():
+                _logger.info(f"Executing query: {query}")
+                spark_cursor.execute(query)
 
-            # Process batch
-            batch_path = f"{self.hdfs_path}/batch_{batch_num}"
-            spark_query = f"""
-                SET spark.sql.legacy.allowNonEmptyLocationInCTAS=true;
-                
-                CREATE OR REPLACE TEMPORARY VIEW {self.table}_view_{batch_num}
-                USING org.apache.spark.sql.jdbc
-                OPTIONS (
-                  url "jdbc:mysql://{mysql_conn.host}:{mysql_conn.port}/{self.schema}",
-                  dbtable "{batch_query}",
-                  user '{mysql_conn.login}',
-                  password '{mysql_conn.password}'
-                );
-                
-                DROP TABLE IF EXISTS {self.table}_tmp_{batch_num};
-                CREATE TABLE {self.table}_tmp_{batch_num}
-                USING parquet
-                OPTIONS (path '{batch_path}')
-                AS SELECT * FROM {self.table}_view_{batch_num};
-                
-                DROP VIEW IF EXISTS {self.table}_view_{batch_num}
-            """
-
-            for query in spark_query.split(';'):
-                if query.strip():
-                    _logger.info(f"Executing query: {query}")
-                    spark_cursor.execute(query)
-
-            _logger.info(f"Completed batch {batch_num + 1}/{num_batches}")
+        _logger.info(f"Completed batch {batch_num}")
 
         # Clean up connections
-        mysql_cursor.close()
-        mysql_connection.close()
         spark_cursor.close()
         spark_conn.close()
 
-        _logger.info(f"Successfully created {num_batches} parquet files in {self.hdfs_path}")
+        _logger.info(f"Successfully created parquet file in {batch_path}")
 
 
 class MySQLToHDFSOperatorV3Plugin(AirflowPlugin):
