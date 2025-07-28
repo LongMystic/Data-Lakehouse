@@ -178,12 +178,16 @@ services:
       - SPARK_USER=spark_user
     volumes:
       - ./services/spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./services/spark/conf/ranger-spark-security.xml:/opt/spark/conf/ranger-spark-security.xml
+      - ./services/spark/conf/ranger-spark-audit.xml:/opt/spark/conf/ranger-spark-audit.xml
       - ./services/hive/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./services/hadoop/conf/core-site.xml:/opt/hadoop/etc/hadoop/conf/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/conf/hdfs-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/opt/hadoop/etc/hadoop/conf/yarn-site.xml
       - ./services/spark/jars/mysql-connector-java-8.0.21.jar:/opt/spark/jars/mysql-connector-java-8.0.21.jar
       - ./services/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar:/opt/spark/jars/iceberg-spark-runtime-3.3_2.12-1.3.0.jar
+      - ./services/spark/jars/kyuubi-spark-authz_2.12-1.10.0.jar:/opt/spark/jars/kyuubi-spark-authz_2.12-1.10.0.jar
+      - ./services/spark/jars/kyuubi-spark-authz-shaded_2.12-1.10.0.jar:/opt/spark/jars/kyuubi-spark-authz-shaded_2.12-1.10.0.jar
     ports:
       - "10000:10000"
       - "4040:4040"
