@@ -95,4 +95,49 @@
        <value>NONE</value>
     </property>
 
+    <property>
+      <name>hive.security.authorization.manager</name>
+      <value>org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory</value>
+    </property>
+    <property>
+      <name>hive.security.authenticator.manager</name>
+      <value>org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator</value>
+    </property>
+    <property>
+      <name>ranger.plugin.hive.service.name</name>
+      <value>hive</value>
+    </property>
+    <property>
+      <name>ranger.plugin.hive.policy.rest.url</name>
+      <value>http://ranger-admin:6080</value>
+    </property>
+    <property>
+      <name>ranger.plugin.hive.policy.rest.username</name>
+      <value>admin</value>
+    </property>
+    <property>
+      <name>ranger.plugin.hive.policy.rest.password</name>
+      <value>rangeradmin1</value>
+    </property>
+    <property>
+      <name>hive.server2.enable.doAs</name>
+      <value>false</value>
+    </property>
+    <property>
+      <name>xasecure.audit.destination.elasticsearch</name>
+      <value>true</value>
+    </property>
+    <property>
+      <name>xasecure.audit.elasticsearch.uris</name>
+      <value>ranger-es:9200</value>
+    </property>
+    <property>
+      <name>xasecure.audit.elasticsearch.user</name>
+      <value>elasticsearch</value>
+    </property>
+    <property>
+      <name>xasecure.audit.elasticsearch.password</name>
+      <value>elasticsearch</value>
+    </property>
+
 </configuration>

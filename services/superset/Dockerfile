@@ -14,6 +14,8 @@ ENV ADMIN_EMAIL=admin@superset.com ADMIN_USERNAME=admin ADMIN_PASSWORD=admin
 COPY ./conf/superset_config.py /app/
 ENV SUPERSET_CONFIG_PATH /app/superset_config.py
 
+COPY ./sqlalchemy_hive.py /usr/local/lib/python3.10/site-packages/pyhive/sqlalchemy_hive.py
+
 COPY superset-init.sh /app/superset-custom.sh
 RUN chmod +x /app/superset-custom.sh && \
     sed -i 's/\r$//' /app/superset-custom.sh

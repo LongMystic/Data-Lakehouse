@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?><!--
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
@@ -12,9 +11,7 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License. See accompanying LICENSE file.
--->
-<!-- Put site-specific property overrides in this file. -->
-<configuration>
+--><!-- Put site-specific property overrides in this file. --><configuration>
   <property>
     <name>dfs.webhdfs.enabled</name>
     <value>true</value>
@@ -47,4 +44,55 @@
     <value>134217728</value>
   </property>
     <!-- Set the desired minimum replication factor -->
+
+  <!-- Ranger HDFS Integration -->
+  <property>
+    <name>dfs.namenode.inode.attributes.provider.class</name>
+    <value>org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer</value>
+  </property>
+
+  <!-- Ranger Authorization -->
+  <property>
+    <name>dfs.permissions.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>dfs.permissions</name>
+    <value>true</value>
+  </property>
+
+  <!-- Ranger Audit Configuration -->
+  <property>
+    <name>xasecure.audit.destination.db</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>xasecure.audit.destination.solr</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>xasecure.audit.destination.elasticsearch</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>xasecure.audit.elasticsearch.uris</name>
+    <value>ranger-es:9200</value>
+  </property>
+  <property>
+    <name>xasecure.audit.elasticsearch.index</name>
+    <value>ranger_audits</value>
+  </property>
+  <property>
+    <name>xasecure.audit.elasticsearch.user</name>
+    <value>elasticsearch</value>
+  </property>
+  <property>
+    <name>xasecure.audit.elasticsearch.password</name>
+    <value>elasticsearch</value>
+  </property>
+
+  <property>
+      <name>dfs.permissions.ContentSummary.subAccess</name>
+      <value>true</value>
+  </property>
 </configuration>

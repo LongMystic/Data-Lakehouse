@@ -36,11 +36,10 @@ x-airflow-common:
       condition: service_healthy
 
 services:
-#   ===== HDFS: namenode =====
+  #   ===== HDFS: namenode =====
   namenode:
     image: kadensungbincho/ranger-hadoop-namenode:2.0.0-hadoop3.2.1-java8-ranger2.1.0
     container_name: namenode
-
     hostname: namenode
     environment:
       CLUSTER_NAME: datn_2025
@@ -56,6 +55,10 @@ services:
           echo "Formatting NameNode..."
           hdfs namenode -format -force
         fi
+        echo "Installing Ranger HDFS Plugin..."
+        cd /opt/ranger-hdfs-plugin
+        ./enable-hdfs-plugin.sh
+        echo "Starting NameNode..."
         hdfs namenode
     volumes:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
@@ -66,12 +69,11 @@ services:
     networks:
       - mini_lakehouse
   
-#   ===== HDFS: datanode =====
+  #   ===== HDFS: datanode =====
   datanode1:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: datanode1
     mem_limit: 500m
-
     hostname: datanode1
     environment:
       HADOOP_CONF_DIR: /etc/hadoop
@@ -79,6 +81,7 @@ services:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
+      - ./services/hadoop/conf/install.properties:/opt/ranger-hdfs-plugin/install.properties
       - ./services/hadoop/data/datanode1:/opt/data/datanode
     networks:
       - mini_lakehouse
@@ -87,7 +90,6 @@ services:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: datanode2
     mem_limit: 500m
-
     hostname: datanode2
     environment:
       HADOOP_CONF_DIR: /etc/hadoop
@@ -95,6 +97,7 @@ services:
       - ./services/hadoop/conf/core-site.xml:/etc/hadoop/core-site.xml
       - ./services/hadoop/conf/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
       - ./services/hadoop/conf/yarn-site.xml:/etc/hadoop/yarn-site.xml
+      - ./services/hadoop/conf/install.properties:/opt/ranger-hdfs-plugin/install.properties
       - ./services/hadoop/data/datanode2:/opt/data/datanode
     networks:
       - mini_lakehouse
@@ -205,12 +208,22 @@ services:
       - ./services/hive/jars/mysql-connector-java-8.0.21.jar:/opt/hive/lib/mysql-connector-java-8.0.21.jar
       - ./services/hive/jars/iceberg-hive-runtime-1.3.0.jar:/opt/hive/lib/iceberg-hive-runtime-1.3.0.jar
     entrypoint: ["/bin/bash", "-c", "
-      if ! mysql -h mysql -u root -proot -e 'use hive_metastore; SELECT * FROM CTLGS LIMIT 1;' &> /dev/null; then
-        echo 'Initializing schema...';
-        /opt/hive/bin/schematool -dbType mysql -initSchema;
+      echo 'Waiting for MySQL to be ready...';
+      while ! nc -z mysql 3306; do
+        sleep 2;
+      done;
+      echo 'MySQL is ready. Checking schema...';
+      if ! /opt/hive/bin/schematool -dbType mysql -info &> /dev/null; then
+        echo 'Initializing Hive metastore schema...';
+        /opt/hive/bin/schematool -dbType mysql -initSchema -verbose;
+        echo 'Schema initialization completed.';
       else
         echo 'Schema already exists. Skipping initialization.';
       fi;
+      echo 'Installing Ranger Hive Plugin...';
+      cd /opt/ranger-hive-plugin;
+      ./enable-hive-plugin.sh;
+      echo 'Starting Hive metastore...';
       /opt/hive/bin/hive --service metastore
     "]
     ports:
@@ -230,6 +243,7 @@ services:
   # mysql - serves both Hive Metastore and Ranger
   mysql:
     image: mysql:5.7
+    hostname: mysql
     container_name: mysql
     mem_limit: 500m
     command: --default-authentication-plugin=mysql_native_password
@@ -242,7 +256,6 @@ services:
       - "3306:3306"
     volumes:
       - ./services/mysql/data:/var/lib/mysql
-      - ./scripts/init_ranger_db.sql:/docker-entrypoint-initdb.d/init_ranger_db.sql
     networks:
       - mini_lakehouse
     healthcheck:
@@ -271,14 +284,28 @@ services:
       timeout: 10s
       retries: 3
 
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    container_name: ranger-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ranger
+      MYSQL_USER: ranger
+      MYSQL_PASSWORD: ranger
+    expose:
+      - "3306"
+    networks:
+      - mini_lakehouse
+
   ranger-admin:
     image: kadensungbincho/ranger-admin:2.1.0
     container_name: ranger-admin
     hostname: ranger
-    mem_limit: 1000m
     depends_on:
-      mysql:
-        condition: service_healthy
+      - db
     volumes:
       - ./services/ranger/admin/bootstrap.sh:/opt/ranger_admin/bootstrap.sh
       - ./services/ranger/admin/install.properties:/opt/ranger_admin/install.properties
@@ -287,12 +314,16 @@ services:
       - "6080:6080"
     networks:
       - mini_lakehouse
-      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6080"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
   ranger-usersync:
     image: kadensungbincho/ranger-usersync:2.1.0
     container_name: ranger-usersync
     hostname: usersync
-    mem_limit: 1000m
     depends_on:
       - ranger-admin
     volumes:
@@ -301,7 +332,7 @@ services:
     command: ["./bootstrap.sh"]
     networks:
       - mini_lakehouse
-
+    restart: always
   #  ranger-usersync-ldap:
   #    image: kadensungbincho/ranger-usersync:2.1.0
   #    container_name: ranger2.0.0-usersync-ldap
@@ -315,9 +346,9 @@ services:
   #      - ./usersync/conf.dist/log4j.properties:/opt/ranger_usersync/conf.dist/log4j.properties
   #    command: ["./bootstrap.sh"]
   es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
     container_name: ranger-es
-    mem_limit: 500m
+    mem_limit: 1000m
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -459,6 +490,12 @@ services:
       - ./services/airflow:/sources
     networks:
       - mini_lakehouse
+
+volumes:
+  db_data:
+    driver: local
+  es_data:
+    driver: local
 
 networks:
   mini_lakehouse:

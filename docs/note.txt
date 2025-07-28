@@ -55,10 +55,11 @@ airflow connections add 'spark_conn_id' \
     --conn-extra '{"auth": "NOSASL"}'
 
 
-avg by (instance) (
-  process_resident_memory_bytes{job=~"namenode|datanode1|datanode2|resourcemanager|nodemanager1|nodemanager2"}
-) / 1024 / 1024
+=== NOTE FOR NEW REPO
 
-avg by (instance) (
-  process_resident_memory_bytes{job="namenode"}
-) / 1024 / 1024
+docker compose up namenode datanode1 resourcemanager nodemanager1 -d
+docker compose up mysql hive-metastore -d
+docker compose up ranger-admin ranger-usersync ranger-es db -d
+docker compose up spark-thrift-server -d
+
+docker rm -f ranger-admin ranger-usersync ranger-es ranger-db

@@ -52,4 +52,18 @@
 		<value>*</value>
 	</property>
 
+	<property>
+		<name>hadoop.security.authentication</name>
+		<value>simple</value>
+	</property>
+	<property>
+		<name>hadoop.security.authorization</name>
+		<value>true</value>
+	</property>
+
+	<property>
+		<name>fs.permissions.enabled</name>
+		<value>true</value>
+	</property>
+
 </configuration>
