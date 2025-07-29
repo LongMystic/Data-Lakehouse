@@ -1,0 +1,9 @@
+# Exclude everything except what we need
+*
+
+# Include only the files we need
+!Dockerfile
+!ranger-2.1.0-hive-plugin.tar.gz
+!run.sh
+!conf/
+!jars/ 
