@@ -59,7 +59,8 @@ airflow connections add 'spark_conn_id' \
 
 docker compose up namenode datanode1 resourcemanager nodemanager1 -d
 docker compose up mysql hive-metastore -d
-docker compose up ranger-admin ranger-usersync ranger-es db -d
+docker compose up openldap phpldapadmin -d
+docker compose up ranger-admin ranger-usersync-ldap es db -d
 docker compose up spark-thrift-server -d
 
 docker rm -f ranger-admin ranger-usersync ranger-es ranger-db
